@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Duet</title>
+<link rel="stylesheet" href="options.css">
+</head>
+<body>
+<main>
+  <h1>⇄ <span data-i18n="opt.title"></span></h1>
+
+  <section>
+    <h2 data-i18n="opt.general"></h2>
+    <div class="grid">
+      <label><span data-i18n="opt.uiLang"></span>
+        <select id="uiLang">
+          <option value="auto" data-i18n="ui.auto"></option><option value="zh">中文</option><option value="en">English</option>
+        </select>
+      </label>
+      <label><span data-i18n="opt.source"></span> <select id="sourceLang"></select></label>
+      <label><span data-i18n="opt.target"></span> <select id="targetLang"></select></label>
+      <label><span data-i18n="opt.active"></span> <select id="activeProviderId"></select></label>
+      <label><span data-i18n="opt.highlight"></span>
+        <select id="highlight"><option value="hover" data-i18n="hl.hover"></option><option value="off" data-i18n="hl.off"></option></select>
+      </label>
+      <label data-i18n-title="opt.prefetch.title"><span data-i18n="opt.prefetch"></span> <input id="prefetchScreens" type="number" min="0" max="10" step="0.5"></label>
+      <label class="chk"><input id="syncScroll" type="checkbox"> <span data-i18n="opt.sync"></span></label>
+      <label class="chk" data-i18n-title="opt.strip.title"><input id="stripFrameHeaders" type="checkbox"> <span data-i18n="opt.strip"></span></label>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-i18n="opt.engines"></h2>
+    <p class="hint" data-i18n-html="opt.engines.hint"></p>
+    <div id="providers"></div>
+    <div class="row">
+      <button id="addOpenai" data-i18n="opt.addOpenai"></button>
+      <button id="addDeepl" data-i18n="opt.addDeepl"></button>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-i18n="opt.cache"></h2>
+    <div class="row"><span id="cacheInfo">…</span><button id="clearCache" data-i18n="opt.clearCache"></button></div>
+  </section>
+
+  <div class="savebar"><button id="save" class="primary" data-i18n="opt.save"></button><span id="saved"></span></div>
+</main>
+<template id="tpl-provider">
+  <fieldset class="prov">
+    <legend><span class="type"></span></legend>
+    <div class="grid fields"></div>
+    <div class="row">
+      <button class="test" data-i18n="opt.test"></button>
+      <button class="del danger" data-i18n="opt.del"></button>
+      <pre class="out"></pre>
+    </div>
+  </fieldset>
+</template>
+<script src="../shared/defaults.js"></script>
+<script src="../shared/i18n.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

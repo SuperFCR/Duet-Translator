@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <b>⇄ <span data-i18n="brand"></span></b>
+    <span class="right">
+      <span id="saved"></span>
+      <span class="seg" id="uiLang"><button data-v="zh">中</button><button data-v="en">EN</button></span>
+    </span>
+  </header>
+  <button id="toggle" class="primary" disabled>…</button>
+
+  <label><span data-i18n="pop.engine"></span>
+    <select id="engine"></select>
+  </label>
+  <div id="fields"></div>
+  <label><span data-i18n="pop.lang"></span>
+    <select id="lang"></select>
+  </label>
+
+  <div class="row">
+    <button id="test" data-i18n="pop.test"></button>
+    <span id="testOut"></span>
+  </div>
+
+  <footer>
+    <span class="hint" data-i18n="pop.keyLocal"></span>
+    <a href="#" id="more" data-i18n="pop.more"></a>
+  </footer>
+  <script src="../shared/defaults.js"></script>
+  <script src="../shared/i18n.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
