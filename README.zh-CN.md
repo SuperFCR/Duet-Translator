@@ -128,3 +128,7 @@ node e2e/live.mjs
 - Shadow DOM（Web Components）内的文字不会翻译。
 - 浏览器内置页（`edge://`）、扩展商店、内置 PDF 查看器无法分屏。
 - 译文按批次整体出现；流式逐段显示在计划中。
+
+## 许可证
+
+[MIT](LICENSE) © 2026 SuperFCR

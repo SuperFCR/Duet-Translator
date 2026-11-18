@@ -128,3 +128,7 @@ Adding an engine: implement `translate(segments, cfg, ctx) → Promise<string[]>
 - Text inside Shadow DOM (web components) is not translated.
 - Browser pages (`edge://`), the extension stores and the built-in PDF viewer cannot be split.
 - Translations appear one batch at a time; streaming is on the roadmap.
+
+## License
+
+[MIT](LICENSE) © 2026 SuperFCR

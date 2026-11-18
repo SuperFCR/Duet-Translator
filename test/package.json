@@ -1,6 +1,7 @@
 {
   "name": "duet-tests",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "test:unit": "node --test unit/*.test.cjs",
