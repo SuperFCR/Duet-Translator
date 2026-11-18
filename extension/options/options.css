@@ -22,3 +22,4 @@ pre.out.err { color: #b91c1c; }
 .savebar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e5e7eb; padding: 10px; text-align: center; }
 #saved { margin-left: 10px; color: #059669; }
 h1.brand { display: flex; align-items: center; gap: 10px; }
+h1 a.welcome { margin-left: auto; font-size: 13px; font-weight: 400; color: #2563eb; text-decoration: none; }
