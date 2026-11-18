@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- 小尺寸（16/32px）简化版：去掉文字线，保留两页 + 金色高亮带 -->
+  <rect x="0" y="0" width="16" height="16" rx="3.5" fill="#2563eb"/>
+  <rect x="2" y="2.5" width="5.5" height="11" rx="1.2" fill="#ffffff"/>
+  <rect x="8.5" y="2.5" width="5.5" height="11" rx="1.2" fill="#dbeafe"/>
+  <rect x="1" y="6.5" width="14" height="3" rx="1" fill="#fbbf24"/>
+</svg>

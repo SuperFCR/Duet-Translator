@@ -1,6 +1,8 @@
-# Duet-Translator
+<p align="center"><img src="extension/icons/logo.svg" width="112" alt="Duet-Translator logo"></p>
 
-**English** | [简体中文](README.zh-CN.md)
+<h1 align="center">Duet-Translator</h1>
+
+<p align="center"><b>English</b> | <a href="README.zh-CN.md">简体中文</a></p>
 
 Duet-Translator is an Edge / Chrome extension that shows a web page and its translation **side by side**, and keeps the two panes scrolling **in sync, paragraph by paragraph**. You bring the translation engine: a self-hosted LLM (vLLM, SGLang, Ollama…), a hosted API such as DeepSeek, or DeepL.
 

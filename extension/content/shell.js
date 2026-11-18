@@ -91,7 +91,8 @@
     font: 13px/1.4 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; color: #1f2937; }
   .bar { height: 38px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 10px;
     border-bottom: 1px solid #e5e7eb; background: #f8fafc; }
-  .brand { font-weight: 600; white-space: nowrap; }
+  .brand { font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+  .brand svg { width: 18px; height: 18px; flex: none; }
   .status { color: #6b7280; min-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
   .status.err { color: #b91c1c; }
   select, button { font: inherit; height: 26px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; padding: 0 8px; color: inherit; }
@@ -105,7 +106,7 @@
 </style>
 <div class="wrap">
   <div class="bar">
-    <span class="brand">⇄ <span data-i18n="brand"></span></span>
+    <span class="brand">${LOGO_SVG}<span data-i18n="brand"></span></span>
     <span class="status" id="status" data-i18n="sh.loading"></span>
     <select id="lang" data-i18n-title="sh.lang.title">${langOpts}</select>
     <select id="prov" data-i18n-title="sh.prov.title">${provOpts}</select>
@@ -373,6 +374,11 @@
       }
     }
   }
+
+  // 顶栏 logo（与 icons/logo-small.svg 相同，内联以免把扩展资源暴露给网页）
+  const LOGO_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="3.5" fill="#2563eb"/>' +
+    '<rect x="2" y="2.5" width="5.5" height="11" rx="1.2" fill="#fff"/><rect x="8.5" y="2.5" width="5.5" height="11" rx="1.2" fill="#dbeafe"/>' +
+    '<rect x="1" y="6.5" width="14" height="3" rx="1" fill="#fbbf24"/></svg>';
 
   function provOptions(s) {
     return (s.providers || []).map((p) => `<option value="${p.id}">${escapeHtml(PT.provName(p))}</option>`).join('');

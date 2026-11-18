@@ -1,6 +1,8 @@
-# Duet-Translator · 对读
+<p align="center"><img src="extension/icons/logo.svg" width="112" alt="Duet-Translator logo"></p>
 
-[English](README.md) | **简体中文**
+<h1 align="center">Duet-Translator · 对读</h1>
+
+<p align="center"><a href="README.md">English</a> | <b>简体中文</b></p>
 
 Duet-Translator 是一个 Edge / Chrome 扩展：左边原网页，右边译文网页，**按段落对齐、同步滚动**。翻译引擎由你决定：自部署大模型（vLLM、SGLang、Ollama…）、DeepSeek 等在线 API，或 DeepL。
 
