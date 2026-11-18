@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Re-render demo</title>
+<style>body{font:17px/1.6 Georgia,serif;max-width:720px;margin:40px auto;padding:0 20px}</style></head>
+<body>
+<h1 data-idx="0">Pages that rewrite their own text</h1>
+<p data-idx="1" id="restore">This paragraph is reset to its original English text every second, like a framework re-rendering it.</p>
+<p data-idx="2" id="append">This paragraph gets an extra status text node appended every second, mixing page text with the translation.</p>
+<p data-idx="3">This paragraph is never touched by the page and should be translated exactly once.</p>
+<script>
+  const orig = document.getElementById('restore').textContent;
+  let n = 0;
+  setInterval(() => {
+    if (++n > 12) return;
+    document.getElementById('restore').textContent = orig;
+    document.getElementById('append').append(' (tick)');
+  }, 1000);
+</script>
+</body></html>

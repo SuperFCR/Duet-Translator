@@ -15,6 +15,7 @@ Duet-Translator 是一个 Edge / Chrome 扩展：左边原网页，右边译文�
 - **两边都是真实网页**：左右两个窗格加载的都是原网页本身，排版、图片、链接、登录状态都在；只有右侧被原地翻译。
 - **按段落对齐的同步滚动**：滚任意一侧，另一侧跟随；正在读的那一段两侧对齐，并且同时到顶、同时到底。即使译文比原文长很多或短很多也一样。
 - **读到哪翻到哪，按需付费**：只翻可视区域（加半屏余量）；滚动中不发请求；已划走的在途请求会被取消；译文本地缓存。
+- **流式显示**：翻好一段显示一段；还在翻的段落会轻微"呼吸"，一眼能看出正在工作。
 - **保留格式**：链接、粗体/斜体、行内代码、引用角标、图片都保留；代码块不翻译。
 - **引擎自选**：任何 OpenAI 兼容接口（vLLM、SGLang、Ollama、LM Studio、llama.cpp、DeepSeek、OpenRouter、通义 DashScope…）或 DeepL。
 - **悬停对照**：鼠标停在一段上，另一侧对应段落同时高亮。
@@ -37,14 +38,14 @@ Duet-Translator 是一个 Edge / Chrome 扩展：左边原网页，右边译文�
 
 <img src="docs/images/popup-zh.png" width="320" align="right" alt="Duet-Translator 弹窗">
 
-点工具栏上的 Duet-Translator 图标：
+安装后会自动打开**引导页**：带你固定图标、选引擎、填 Key，然后打开一个示例页面并直接开启对读。之后也可以随时点工具栏上的 Duet-Translator 图标设置：
 
 1. 选择 **翻译引擎**（默认 DeepSeek V4.1 Flash）；
 2. 粘贴 **API Key**，需要的话修改接口地址、模型名。修改自动保存；
 3. 点 **测试连接**；
 4. 点 **在此页开启对读**。
 
-已经打开的页面会立即使用新设置：填好 Key 会自动重试失败的段落；切换引擎或目标语言会重新翻译右侧。
+引擎需要 Key 却没填时，会直接在弹窗里提示，而不是开了分屏才报错。已经打开的页面会立即使用新设置：填好 Key 会自动重试失败的段落；切换引擎或目标语言会重新翻译右侧。
 
 批量大小、并发、额外请求参数、自定义 prompt、新增引擎等在 **更多设置** 里。
 
@@ -57,7 +58,7 @@ Duet-Translator 是一个 Edge / Chrome 扩展：左边原网页，右边译文�
 | DeepSeek V4.1 Flash | 只需 API Key。接口地址 `https://api.deepseek.com`，模型 `deepseek-flash`，已预置 `{"thinking": {"type": "disabled"}}` |
 | 自部署 LLM（OpenAI 兼容） | 接口地址到 `/v1` 为止，例如 `http://127.0.0.1:8000/v1`；模型名填服务端的模型名；Key 可空 |
 | DeepL | Endpoint（免费版为 `https://api-free.deepl.com`）和 Auth Key |
-| Mock | 离线演示，不调用任何 API |
+| Mock | 离线演示，不调用任何 API（在「更多设置 → 开发者选项」里打开后才显示） |
 
 常用的 **额外请求体**（更多设置 → 对应引擎）：
 
@@ -112,6 +113,7 @@ npm run test:unit                 # 同步算法单测（node:test）
 npm run test:options              # 设置页与弹窗
 npm run test:e2e                  # 在 Chromium 中加载扩展，检查对齐、翻译、费用控制
 npm run demo                      # 本地演示页 http://127.0.0.1:8787/article.html
+node e2e/compat.mjs               # 用离线 Mock 引擎巡检真实网站兼容性（结果见 docs/COMPAT.md）
 ```
 
 用真实引擎做冒烟测试（Key 只从环境变量读取）：
@@ -129,7 +131,7 @@ node e2e/live.mjs
 - 每个页面会加载两次（左右各一次），广告、随机内容两侧可能不同。
 - Shadow DOM（Web Components）内的文字不会翻译。
 - 浏览器内置页（`edge://`）、扩展商店、内置 PDF 查看器无法分屏。
-- 译文按批次整体出现；流式逐段显示在计划中。
+- 有 Cookie 同意弹窗的网站，需要在左右两侧各点一次（两侧是分别加载的页面）。有反爬虫验证（如 Cloudflare 质询）的网站，可能拒绝在分屏中加载。详见 [docs/COMPAT.md](docs/COMPAT.md)。
 
 ## 许可证
 

@@ -37,6 +37,33 @@
   }
 
   /**
+   * 并排元素过滤。叶子段落在正常文档流里不会在竖直方向重叠；一旦重叠，说明它们是并排的
+   * （浮动图注、信息框行、侧栏短项挨着正文，表格同一行的多个单元格，多栏卡片）。
+   * 并排元素的锚点会插进正文段落内部或跨在两段之间，把正文的段内插值带偏。
+   * 规则：每组重叠里只保留"主要"的一段——文字更多（n），相同则更高。两侧任一侧重叠即处理。
+   */
+  function dropSideBySide(pairs) {
+    const drop = new Set();
+    const weight = (i) => { const a = pairs[i][0]; return (a.n || 0) * 1e5 + (a.b - a.t); };
+    for (const side of [0, 1]) {
+      const order = pairs.map((_, i) => i).sort((i, j) => pairs[i][side].t - pairs[j][side].t);
+      let active = [];
+      for (const i of order) {
+        const u = pairs[i][side];
+        active = active.filter((j) => pairs[j][side].b > u.t);
+        for (const j of active) {
+          const v = pairs[j][side];
+          const ov = Math.min(u.b, v.b) - Math.max(u.t, v.t);
+          if (ov <= Math.max(4, 0.25 * Math.min(u.b - u.t, v.b - v.t))) continue;   // 行高/外边距造成的轻微重叠不算
+          drop.add(weight(i) < weight(j) ? i : j);
+        }
+        active.push(i);
+      }
+    }
+    return pairs.filter((_, i) => !drop.has(i));
+  }
+
+  /**
    * @param {Array<{k:string,t:number,b:number}>} A  L 窗格锚点
    * @param {Array<{k:string,t:number,b:number}>} B  R 窗格锚点
    * @param {{HA:number, HB:number, minGap?:number}} dims  两边内容总高度
@@ -48,10 +75,13 @@
     const mapB = new Map();
     for (const a of B) if (!mapB.has(a.k)) mapB.set(a.k, a);
 
-    const raw = [];
+    const pairs = [];
     for (const a of A) {
       const b = mapB.get(a.k);
-      if (!b) continue;
+      if (b) pairs.push([a, b]);
+    }
+    const raw = [];
+    for (const [a, b] of dropSideBySide(pairs)) {
       raw.push([a.t, b.t]);
       // 段落内部也按比例对齐：上下边界都作为锚点
       if (a.b - a.t > 1 && b.b - b.t > 1) raw.push([a.b, b.b]);
@@ -131,7 +161,7 @@
     return (h >>> 0).toString(36);
   }
 
-  const api = { lisIndices, buildPairs, createMapper, interp, followerScrollTop, hashText, clamp };
+  const api = { lisIndices, dropSideBySide, buildPairs, createMapper, interp, followerScrollTop, hashText, clamp };
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.PT = root.PT || {};
   root.PT.sync = api;

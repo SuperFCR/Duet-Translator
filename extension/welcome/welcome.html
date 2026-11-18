@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Duet-Translator</title>
+<link rel="stylesheet" href="welcome.css">
+</head>
+<body>
+<main>
+  <header>
+    <div class="brand"><img src="../icons/logo.svg" width="56" height="56" alt=""><h1 data-i18n="wel.title"></h1></div>
+    <span class="seg" id="uiLang"><button data-v="zh">中</button><button data-v="en">EN</button></span>
+  </header>
+  <p class="sub" data-i18n="wel.sub"></p>
+
+  <ol class="steps">
+    <li>
+      <h2 data-i18n="wel.s1"></h2>
+      <p data-i18n="wel.s1d"></p>
+    </li>
+    <li>
+      <h2 data-i18n="wel.s2"></h2>
+      <p data-i18n="wel.s2d"></p>
+      <div class="card">
+        <label><span data-i18n="pop.engine"></span><select id="engine"></select></label>
+        <div id="fields"></div>
+        <label><span data-i18n="pop.lang"></span><select id="lang"></select></label>
+        <div class="row"><button id="test" data-i18n="pop.test"></button><span id="testOut"></span><span id="saved"></span></div>
+      </div>
+    </li>
+    <li>
+      <h2 data-i18n="wel.s3"></h2>
+      <p id="s3d"></p>
+      <div class="row"><button id="try" class="primary" data-i18n="wel.try"></button><span id="tryOut"></span></div>
+    </li>
+  </ol>
+
+  <footer>
+    <a href="#" id="more" data-i18n="wel.more"></a>
+    <span>·</span>
+    <a href="https://github.com/SuperFCR/Duet-Translator" target="_blank" rel="noopener">GitHub</a>
+  </footer>
+</main>
+<script src="../shared/defaults.js"></script>
+<script src="../shared/i18n.js"></script>
+<script src="../shared/quick-setup.js"></script>
+<script src="welcome.js"></script>
+</body>
+</html>

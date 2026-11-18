@@ -15,6 +15,7 @@ Duet-Translator is an Edge / Chrome extension that shows a web page and its tran
 - **The real page, twice.** Both panes load the actual page, so layout, images, links and login state stay intact. Only the right pane is translated, in place.
 - **Paragraph-aligned scrolling.** Scroll either side and the other follows; the paragraph you are reading lines up on both sides, and both reach the top and bottom together, even when the translation is much longer or shorter than the original.
 - **Pay only for what you read.** Only the visible area (plus half a screen) is translated. Nothing is requested while you scroll, requests you scrolled away from are cancelled, and translations are cached locally.
+- **Streaming.** Each paragraph appears as soon as it is translated, and paragraphs still in progress gently pulse, so you always know it is working.
 - **Formatting preserved.** Links, bold/italic, inline code, citation markers and images survive translation; code blocks are left untouched.
 - **Bring your own engine.** Any OpenAI-compatible endpoint (vLLM, SGLang, Ollama, LM Studio, llama.cpp, DeepSeek, OpenRouter, Qwen/DashScope…) or DeepL.
 - **Hover to compare.** Hovering a paragraph highlights its counterpart on the other side.
@@ -37,14 +38,14 @@ After pulling new code, click **Reload** on the extension card and refresh the p
 
 <img src="docs/images/popup-en.png" width="320" align="right" alt="Duet-Translator popup">
 
-Click the Duet-Translator icon in the toolbar:
+After installation a **welcome page** opens and walks you through pinning the icon, choosing an engine and entering a key, then opens a sample page with Duet already on. You can also set things up any time from the Duet-Translator icon in the toolbar:
 
 1. Choose a **translation engine** (DeepSeek V4.1 Flash by default).
 2. Paste your **API key**, and change the base URL or model if needed. Changes are saved automatically.
 3. Click **Test connection**.
 4. Click **Read this page side by side**.
 
-Changes apply immediately to a page that is already open: after you enter a key, failed paragraphs are retried; after switching engine or target language, the right pane is re-translated.
+If the engine needs a key and none is set, Duet asks for it right there instead of opening the split view. Changes apply immediately to a page that is already open: after you enter a key, failed paragraphs are retried; after switching engine or target language, the right pane is re-translated.
 
 Batch size, concurrency, extra request parameters, a custom prompt and additional engines live under **More settings**.
 
@@ -57,7 +58,7 @@ Batch size, concurrency, extra request parameters, a custom prompt and additiona
 | DeepSeek V4.1 Flash | API key only. Base URL `https://api.deepseek.com`, model `deepseek-flash`, with `{"thinking": {"type": "disabled"}}` preset |
 | Self-hosted LLM (OpenAI-compatible) | Base URL up to `/v1`, e.g. `http://127.0.0.1:8000/v1`, and the model name served by your server. Key is optional |
 | DeepL | Endpoint (`https://api-free.deepl.com` for the free plan) and auth key |
-| Mock | Offline demo, calls no API |
+| Mock | Offline demo, calls no API (shown after enabling *More settings → Developer options*) |
 
 Useful **extra request body** values (More settings → engine):
 
@@ -112,6 +113,7 @@ npm run test:unit                 # scroll-sync math (node:test)
 npm run test:options              # settings page and popup
 npm run test:e2e                  # loads the extension in Chromium and checks alignment, translation, cost control
 npm run demo                      # local demo page at http://127.0.0.1:8787/article.html
+node e2e/compat.mjs               # real-site compatibility sweep with the offline Mock engine (see docs/COMPAT.md)
 ```
 
 Live smoke test against a real engine (the key is read from the environment only):
@@ -129,7 +131,7 @@ Adding an engine: implement `translate(segments, cfg, ctx) → Promise<string[]>
 - Each page is loaded twice (once per pane); ads or randomized content may differ between the two sides.
 - Text inside Shadow DOM (web components) is not translated.
 - Browser pages (`edge://`), the extension stores and the built-in PDF viewer cannot be split.
-- Translations appear one batch at a time; streaming is on the roadmap.
+- Sites that show a cookie-consent dialog need it accepted in each pane (the panes are separate page loads). Sites behind bot protection (e.g. Cloudflare challenges) may refuse to load inside the panes. See [docs/COMPAT.md](docs/COMPAT.md).
 
 ## License
 

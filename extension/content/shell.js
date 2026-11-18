@@ -95,6 +95,10 @@
   .brand svg { width: 18px; height: 18px; flex: none; }
   .status { color: #6b7280; min-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
   .status.err { color: #b91c1c; }
+  .busy { flex: none; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #93c5fd; border-top-color: #2563eb; animation: spin .8s linear infinite; }
+  .busy[hidden] { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  button.warn { background: #fef3c7; border-color: #f59e0b; color: #92400e; font-weight: 600; }
   select, button { font: inherit; height: 26px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; padding: 0 8px; color: inherit; }
   button { cursor: pointer; } button:hover { background: #f3f4f6; }
   label { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; cursor: pointer; }
@@ -107,7 +111,9 @@
 <div class="wrap">
   <div class="bar">
     <span class="brand">${LOGO_SVG}<span data-i18n="brand"></span></span>
+    <span class="busy" id="busy" hidden></span>
     <span class="status" id="status" data-i18n="sh.loading"></span>
+    <button id="setkey" class="warn" data-i18n="sh.setKey" hidden></button>
     <select id="lang" data-i18n-title="sh.lang.title">${langOpts}</select>
     <select id="prov" data-i18n-title="sh.prov.title">${provOpts}</select>
     <label data-i18n-title="sh.sync.title"><input type="checkbox" id="sync"> <span data-i18n="sh.sync"></span></label>
@@ -165,6 +171,7 @@
         if (window.confirm(msg)) this.send('R', 'translateAll', {});
       };
       $('retry').onclick = () => this.send('R', 'retry', {});
+      $('setkey').onclick = () => chrome.runtime.sendMessage({ type: 'openWelcome' });
       $('opts').onclick = () => chrome.runtime.sendMessage({ type: 'openOptions' });
 
       // 拖动分隔条
@@ -260,6 +267,9 @@
     }
 
     onHello(from, d) {
+      this.challenge = this.challenge || {};
+      this.challenge[from] = !!d.challenge;
+      if (d.challenge) this.setStatus(PT.t('sh.blocked'), true);
       this.state[from] = d.s;
       this.anchors[from] = null;
       this.mapper = null;
@@ -331,13 +341,17 @@
     onStatus(d) {
       this.lastStatus = d;
       const retry = this.$('retry');
-      retry.hidden = !d.err;
+      retry.hidden = !d.err || d.errCode === 'noKey';
+      this.$('setkey').hidden = d.errCode !== 'noKey';   // 没填 Key：直接给入口
+      this.$('busy').hidden = !d.inflight;
       const f = PT.i18n.fmtNum;
       let txt = PT.t('sh.status', { lang: PT.langName(this.settings.targetLang), done: d.done, total: d.total, sent: f(d.sent) });
       if (d.inflight) txt += PT.t('sh.inflight', { n: d.inflight });
       if (d.err) txt += PT.t('sh.failed', { n: d.err });
       if (d.error) txt += ` · ${d.error}`;
-      this.setStatus(txt, !!d.error);
+      const blocked = this.challenge && (this.challenge.L || this.challenge.R);
+      if (blocked) txt = PT.t('sh.blocked') + ' · ' + txt;
+      this.setStatus(txt, !!d.error || blocked);
       const el = this.$('status');
       el.title = txt + '\n' + PT.t('sh.tip', { n: d.leftN, chars: f(d.leftChars), c: d.cancelled }) +
         (this.mapper ? PT.t('sh.anchors', { n: this.mapper.matched }) : '');

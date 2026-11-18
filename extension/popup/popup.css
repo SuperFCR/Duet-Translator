@@ -24,3 +24,6 @@ footer a { color: #2563eb; text-decoration: none; font-size: 12px; }
 .seg button + button { border-left: 1px solid #d1d5db; }
 .seg button.on { background: #2563eb; color: #fff; }
 .brand { display: inline-flex; align-items: center; gap: 6px; }
+.keyhint { color: #6b7280; font-size: 12px; margin-top: 3px; }
+.keyhint.warn { color: #b45309; font-weight: 600; }
+input.warn { border-color: #f59e0b; outline: 2px solid #fde68a; }

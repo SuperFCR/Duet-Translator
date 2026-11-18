@@ -13,7 +13,13 @@ const SHELL_FILES = ['shared/defaults.js', 'shared/i18n.js', 'shared/sync-core.j
 const PANE_FILES = ['shared/defaults.js', 'shared/i18n.js', 'shared/sync-core.js', 'shared/segment.js', 'content/pane.js'];
 
 /* ------------------------------ 入口 ------------------------------ */
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(async (details) => {
+  if (details.reason === 'install') {
+    // 首次安装：目标语言跟随浏览器语言，并打开引导页
+    const { settings } = await chrome.storage.local.get('settings');
+    if (!settings) await PT.saveSettings({ targetLang: PT.guessTargetLang(navigator.language) });
+    chrome.tabs.create({ url: chrome.runtime.getURL('welcome/welcome.html') });
+  }
   await PT.loadSettings();
   chrome.contextMenus.create({ id: 'pt-split', title: PT.t('ctx.menu'), contexts: ['page', 'selection', 'link', 'image'] });
 });
@@ -108,13 +114,24 @@ function chunk(idx, segs, cfg) {
 
 const aborts = new Map();   // reqId -> AbortController（窗格划远后取消在途请求）
 
-async function translate(msg) {
+async function translate(msg, sender) {
   const ac = msg.reqId ? new AbortController() : null;
   if (ac) aborts.set(msg.reqId, ac);
-  try { return await translateInner(msg, ac && ac.signal); } finally { if (ac) aborts.delete(msg.reqId); }
+  // 流式：每翻好一段就立刻推给发起请求的窗格（不等整批完成）
+  const tabId = sender && sender.tab && sender.tab.id;
+  const partial = msg.reqId && tabId != null && sender.frameId != null
+    ? (i, text) => chrome.tabs.sendMessage(tabId, { type: 'translate:partial', reqId: msg.reqId, i, text }, { frameId: sender.frameId }).catch(() => {})
+    : null;
+  try { return await translateInner(msg, ac && ac.signal, partial); } finally { if (ac) aborts.delete(msg.reqId); }
 }
 
-async function translateInner(msg, signal) {
+function noKeyError() {
+  const e = new Error(PT.t('err.noKey'));
+  e.code = 'noKey';
+  return e;
+}
+
+async function translateInner(msg, signal, partial) {
   const settings = await PT.loadSettings();
   const cfg = msg.cfg || (settings.providers || []).find((p) => p.id === settings.activeProviderId);
   if (!cfg) throw new Error(PT.t('err.noProvider'));
@@ -123,22 +140,23 @@ async function translateInner(msg, signal) {
   const ctx = { from: settings.sourceLang || 'auto', to: msg.to || settings.targetLang, page: msg.page || {}, signal };
   const segs = msg.segments || [];
   const results = new Array(segs.length);
+  if (PT.needsKey(cfg) && !PT.hasKey(cfg)) throw noKeyError();   // 不发请求，直接提示
   try {
-    return await translateCore(msg, cfg, impl, ctx, segs, results, signal);
+    return await translateCore(msg, cfg, impl, ctx, segs, results, signal, partial);
   } catch (e) {
     const m = String((e && e.message) || e);
-    if (!cfg.apiKey && cfg.type !== 'mock' && /HTTP 40[13]/.test(m)) throw new Error(PT.t('err.noKey'));
+    if (!PT.hasKey(cfg) && cfg.type !== 'mock' && /HTTP 40[13]/.test(m)) throw noKeyError();
     throw e;
   }
 }
 
-async function translateCore(msg, cfg, impl, ctx, segs, results, signal) {
+async function translateCore(msg, cfg, impl, ctx, segs, results, signal, partial) {
   const useCache = cfg.type !== 'mock' && !msg.noCache;
   let ks = null;
   if (useCache) {
     ks = await PT.cache.keys([cfg.type, cfg.id, cfg.model || '', ctx.from, ctx.to].join('|'), segs);
     const hit = await PT.cache.getMany(ks);
-    hit.forEach((v, i) => { if (typeof v === 'string') results[i] = v; });
+    hit.forEach((v, i) => { if (typeof v === 'string') { results[i] = v; if (partial) partial(i, v); } });
   }
   const miss = segs.map((_, i) => i).filter((i) => results[i] === undefined);
   let sentChars = 0;   // 实际发给引擎的字符数（缓存命中不计）
@@ -147,7 +165,8 @@ async function translateCore(msg, cfg, impl, ctx, segs, results, signal) {
     await Promise.all(chunk(miss, segs, cfg).map((ch) => withSem(sem, async () => {
       if (signal && signal.aborted) throw new Error('cancelled');
       sentChars += ch.reduce((n, i) => n + segs[i].length, 0);
-      const out = await impl.translate(ch.map((i) => segs[i]), cfg, ctx);
+      const cctx = partial ? Object.assign({}, ctx, { onItem: (j, text) => { if (ch[j] != null) partial(ch[j], text); } }) : ctx;
+      const out = await impl.translate(ch.map((i) => segs[i]), cfg, cctx);
       if (!Array.isArray(out) || out.length !== ch.length) throw new Error(PT.t('err.count'));
       ch.forEach((i, j) => { results[i] = out[j]; });
       if (useCache) await PT.cache.putMany(ch.map((i) => ks[i]), out);
@@ -177,7 +196,20 @@ const handlers = {
     await chrome.scripting.executeScript({ target: { tabId: s.tab.id, frameIds: [s.frameId] }, files: PANE_FILES });
     return { ok: true };
   },
-  translate: (m) => translate(m),
+  translate: (m, s) => translate(m, s),
+  openWelcome: () => chrome.tabs.create({ url: chrome.runtime.getURL('welcome/welcome.html') }).then(() => ({ ok: true })),
+  // 引导页「试一试」：打开示例页面，加载完成后直接开启对读
+  tryDemo: async (m) => {
+    const tab = await chrome.tabs.create({ url: m.url });
+    await new Promise((resolve) => {
+      const done = () => { chrome.tabs.onUpdated.removeListener(on); clearTimeout(timer); resolve(); };
+      const on = (id, info) => { if (id === tab.id && info.status === 'complete') done(); };
+      const timer = setTimeout(done, 30000);
+      chrome.tabs.onUpdated.addListener(on);
+    });
+    await toggle(tab.id, {});
+    return { ok: true, tabId: tab.id };
+  },
   'translate:cancel': (m) => {
     const ac = aborts.get(m.reqId);
     if (ac) ac.abort(new Error('cancelled'));
@@ -193,6 +225,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!h) return false;
   Promise.resolve()
     .then(() => h(msg, sender))
-    .then(sendResponse, (e) => sendResponse({ error: String((e && e.message) || e) }));
+    .then(sendResponse, (e) => sendResponse({ error: String((e && e.message) || e), code: (e && e.code) || '' }));
   return true;
 });

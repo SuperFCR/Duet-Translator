@@ -45,10 +45,12 @@
     $('sourceLang').innerHTML = `<option value="auto">${t('opt.autoDetect')}</option>` + opts;
     $('targetLang').value = tv; $('sourceLang').value = sv;
   }
+  // Mock 演示引擎只在开发者选项打开时显示（或它正是当前引擎）
+  const shown = () => providers.filter((p) => p.type !== 'mock' || $('devMode').checked || p.id === $('activeProviderId').value);
   function fillActive() {
     const cur = $('activeProviderId').value || settings.activeProviderId;
-    $('activeProviderId').innerHTML = providers.map((p) => `<option value="${p.id}">${esc(PT.provName(p))}</option>`).join('');
-    $('activeProviderId').value = providers.some((p) => p.id === cur) ? cur : (providers[0] || {}).id;
+    $('activeProviderId').innerHTML = shown().map((p) => `<option value="${p.id}">${esc(PT.provName(p))}</option>`).join('');
+    $('activeProviderId').value = shown().some((p) => p.id === cur) ? cur : (shown()[0] || {}).id;
   }
   function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
@@ -56,6 +58,7 @@
     const box = $('providers');
     box.innerHTML = '';
     providers.forEach((p, idx) => {
+      if (!shown().includes(p)) return;
       const node = $('tpl-provider').content.firstElementChild.cloneNode(true);
       PT.i18n.apply(node);
       node.querySelector('.type').textContent = `${t('type.' + p.type)} · ${p.id}`;
@@ -135,6 +138,7 @@
       prefetchScreens: Math.max(0, +$('prefetchScreens').value || 0),
       syncScroll: $('syncScroll').checked,
       stripFrameHeaders: $('stripFrameHeaders').checked,
+      devMode: $('devMode').checked,
       providers,
     });
     $('saved').textContent = t('opt.saved');
@@ -143,6 +147,7 @@
 
   $('uiLang').value = settings.uiLang || 'auto';
   for (const k of ['highlight', 'prefetchScreens']) $(k).value = settings[k];
-  for (const k of ['syncScroll', 'stripFrameHeaders']) $(k).checked = !!settings[k];
+  for (const k of ['syncScroll', 'stripFrameHeaders', 'devMode']) $(k).checked = !!settings[k];
+  $('devMode').onchange = () => { fillActive(); render(); };
   renderAll();
 })();

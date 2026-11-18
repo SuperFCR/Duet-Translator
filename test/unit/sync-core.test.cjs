@@ -81,3 +81,41 @@ test('无匹配锚点时退化为按比例滚动', () => {
   const t = S.followerScrollTop({ t: 150, vh: 500, H: 1000 }, { t: 0, vh: 500, H: 3000 }, m.LtoR);
   assert.ok(Math.abs(t / 2500 - 150 / 500) < 1e-9);
 });
+
+test('并排的浮动图注不干扰正文段落内部的对齐', () => {
+  // 左：正文 P1 [100,300]，旁边浮动图注 C [150,180]；右：P1 译文变长 [100,500]，图注 [150,210]
+  const A = [{ k: 'P1', t: 100, b: 300 }, { k: 'C', t: 150, b: 180 }, { k: 'P2', t: 320, b: 400 }];
+  const B = [{ k: 'P1', t: 100, b: 500 }, { k: 'C', t: 150, b: 210 }, { k: 'P2', t: 520, b: 640 }];
+  const m = S.createMapper(S.buildPairs(A, B, { HA: 600, HB: 900 }));
+  // 读到 P1 的一半（左 200）→ 右侧应该在 P1 的一半（300），而不是被图注拉偏
+  assert.ok(Math.abs(m.LtoR(200) - 300) < 1e-6, String(m.LtoR(200)));
+  assert.ok(Math.abs(m.LtoR(320) - 520) < 1e-6);
+});
+
+test('上下堆叠的普通段落不会被误判为并排', () => {
+  const A = [{ k: 'a', t: 0, b: 100 }, { k: 'b', t: 110, b: 200 }, { k: 'c', t: 210, b: 400 }];
+  const kept = S.dropSideBySide(A.map((x) => [x, x]));
+  assert.equal(kept.length, 3);
+});
+
+test('与正文同一高度起始的浮动元素也被去掉', () => {
+  const A = [{ k: 'P1', t: 100, b: 300 }, { k: 'C', t: 100, b: 160 }];
+  const B = [{ k: 'P1', t: 100, b: 500 }, { k: 'C', t: 100, b: 220 }];
+  const m = S.createMapper(S.buildPairs(A, B, { HA: 600, HB: 900 }));
+  assert.ok(Math.abs(m.LtoR(200) - 300) < 1e-6, String(m.LtoR(200)));
+});
+
+test('跨在两段正文之间的信息框行被去掉，正文段内对齐不受影响', () => {
+  // 左：P1 [100,300]、P2 [310,500]，信息框行 R1 [290,330] 跨在两段之间；右：正文变长，信息框行几乎不变
+  const A = [{ k: 'P1', t: 100, b: 300, n: 800 }, { k: 'R1', t: 290, b: 330, n: 20 }, { k: 'P2', t: 310, b: 500, n: 700 }];
+  const B = [{ k: 'P1', t: 100, b: 500, n: 800 }, { k: 'R1', t: 290, b: 350, n: 20 }, { k: 'P2', t: 520, b: 900, n: 700 }];
+  const m = S.createMapper(S.buildPairs(A, B, { HA: 600, HB: 1000 }));
+  assert.ok(Math.abs(m.LtoR(200) - 300) < 1e-6, 'P1 中点 ' + m.LtoR(200));
+  assert.ok(Math.abs(m.LtoR(405) - 710) < 1e-6, 'P2 中点 ' + m.LtoR(405));
+});
+
+test('表格同一行的多个单元格只保留文字最多的一个', () => {
+  const A = [{ k: 'a', t: 0, b: 40, n: 5 }, { k: 'b', t: 0, b: 40, n: 50 }, { k: 'c', t: 50, b: 90, n: 30 }, { k: 'd', t: 50, b: 90, n: 3 }];
+  const kept = S.dropSideBySide(A.map((x) => [x, x])).map((p) => p[0].k);
+  assert.deepEqual(kept.sort(), ['b', 'c']);
+});

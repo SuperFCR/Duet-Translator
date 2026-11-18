@@ -29,6 +29,12 @@ const ctx = await chromium.launchPersistentContext(userDir, {
 });
 let [sw] = ctx.serviceWorkers();
 if (!sw) sw = await ctx.waitForEvent('serviceworker');
+// 首次安装会自动打开引导页；本测试不需要它
+for (let i = 0; i < 20; i++) {
+  const w = ctx.pages().find((p) => p.url().includes('/welcome/welcome.html'));
+  if (w) { await w.close(); break; }
+  await sleep(150);
+}
 
 const setSettings = (patch) => sw.evaluate((p) => globalThis.PT.saveSettings(p), patch);
 const toggle = () => sw.evaluate(async () => {
@@ -304,6 +310,9 @@ await sw.evaluate(async (base) => {
   await toggle();
   const { L: L5, R: R5 } = await panes(page);
   await sleep(1500);                                   // 首屏请求已发出，仍在"生成"
+  // 首屏（含预取区）里的段落：流式下其中一部分可能在划走前已经到达并显示，这是允许的
+  const firstScreen = new Set(await R5.evaluate(() => [...document.querySelectorAll('[data-idx]')]
+    .filter((e) => e.getBoundingClientRect().top < innerHeight * 1.6).map((e) => +e.dataset.idx)));
   const s1 = await stat();
   check(s1.requests > s0.requests, '打开后立即请求首屏', { 请求数: s1.requests - s0.requests, 段数: s1.segs - s0.segs });
   await page.mouse.move(350, 500);
@@ -322,7 +331,7 @@ await sw.evaluate(async (base) => {
     return { vh, total: els.length, translated: els.filter((x) => x.tr), visibleUntranslated: els.filter((x) => x.bottom > 60 && x.top < vh && !x.tr).map((x) => x.idx) };
   });
   check(info.visibleUntranslated.length === 0, '停下后当前可视区域已翻译', info.visibleUntranslated);
-  const far = info.translated.filter((x) => x.top < -0.6 * info.vh || x.top > 1.9 * info.vh);
+  const far = info.translated.filter((x) => (x.top < -0.6 * info.vh || x.top > 1.9 * info.vh) && !firstScreen.has(x.idx));
   check(far.length === 0, '只翻译了可视区域附近的段落（划过的中段没有翻译）', { 已译: info.translated.length, 全部: info.total, 远处已译: far.map((x) => x.idx) });
   check(s3.segs - s0.segs < info.total * 0.5, '发送的段数远少于全文', { 发送段数: s3.segs - s0.segs, 页面段数: info.total });
   // 回到顶部：被取消的首屏会重新翻译
@@ -333,6 +342,72 @@ await sw.evaluate(async (base) => {
     .filter((e) => !e.textContent.startsWith('译:')).map((e) => +e.dataset.idx));
   check(top.length === 0, '回到顶部后，之前被取消的首屏重新翻译', top);
   await page.screenshot({ path: join(OUT, '5-on-demand.png') });
+}
+
+/* ===================== 6. 流式与"正在翻译"提示 ===================== */
+console.log('\n[6] 流式：翻好一段显示一段 + 正在翻译提示（假服务每段 400ms）');
+await sw.evaluate(async (base) => {
+  const s = await globalThis.PT.loadSettings();
+  const providers = s.providers.filter((p) => p.id !== 'drip').concat([{
+    id: 'drip', type: 'openai', name: 'drip', baseUrl: base + '/drip/v1', apiKey: '', model: 'drip-model',
+    temperature: '', extraBody: '', batchChars: 6000, batchSize: 40, concurrency: 1, timeoutMs: 20000,
+  }]);
+  await globalThis.PT.saveSettings({ providers, activeProviderId: 'drip', prefetchScreens: 0 });
+}, BASE);
+{
+  await page.goto(`${BASE}/article.html`);
+  await toggle();
+  const { R: R6 } = await panes(page);
+  const t0 = Date.now();
+  const firstSeen = new Map();
+  let sawPending = false, sawBusy = false;
+  while (Date.now() - t0 < 15000) {
+    const snap = await R6.evaluate(() => ({
+      tr: [...document.querySelectorAll('[data-idx]')]
+        .filter((e) => { const r = e.getBoundingClientRect(); return r.bottom > 60 && r.top < innerHeight && r.height > 0; })
+        .map((e) => [+e.dataset.idx, e.textContent.startsWith('译:')]),
+      pending: document.getAnimations().filter((a) => a.effect && a.effect.getTiming().iterations === Infinity).length,
+    })).catch(() => null);
+    if (snap) {
+      for (const [i, ok] of snap.tr) if (ok && !firstSeen.has(i)) firstSeen.set(i, Date.now() - t0);
+      if (snap.pending) sawPending = true;
+    }
+    if (await page.evaluate(() => { const b = document.querySelector('pt-split-root')?.shadowRoot.getElementById('busy'); return !!b && !b.hidden; })) sawBusy = true;
+    if (snap && snap.tr.length && snap.tr.every((x) => x[1])) break;
+    await sleep(100);
+  }
+  const times = [...firstSeen.values()].sort((a, b) => a - b);
+  check(times.length >= 3 && times[times.length - 1] - times[0] >= 800, '同一批译文逐段出现（流式），不是整批一起出现', { 首段ms: times[0], 末段ms: times[times.length - 1], 段数: times.length });
+  check(sawPending, '翻译中的段落有呼吸提示动画');
+  check(sawBusy, '顶栏显示"请求中"转圈');
+  await sleep(600);
+  const left = await R6.evaluate(() => document.getAnimations().filter((a) => a.effect && a.effect.getTiming().iterations === Infinity).length);
+  check(left === 0, '翻译完成后提示动画全部清除', left);
+  await page.screenshot({ path: join(OUT, '6-streaming.png') });
+}
+
+/* ===================== 7. 页面自己改写已翻译的文字：不能死循环重译 ===================== */
+console.log('\n[7] 页面反复改写译文（框架重渲染 / 追加文字）：不死循环、不烧钱');
+await sw.evaluate(async () => {
+  await globalThis.PT.saveSettings({ activeProviderId: 'fake', prefetchScreens: 0.5 });
+  await globalThis.PT.cache.clear();
+});
+{
+  const s0 = await (await fetch(`${BASE}/__stats`)).json();
+  await page.goto(`${BASE}/rerender.html`);
+  await toggle();
+  const { R: R7 } = await panes(page);
+  await sleep(14000);   // 页面改写 12 秒
+  const s1 = await (await fetch(`${BASE}/__stats`)).json();
+  const info = await R7.evaluate(() => ({
+    restore: document.getElementById('restore').textContent,
+    append: document.getElementById('append').textContent,
+    quiet: document.querySelector('[data-idx="3"]').textContent,
+  }));
+  const segs = s1.segs - s0.segs;
+  check(segs <= 4 + 2 + 1, '改写引起的重译有上限（不随改写次数增长）', { 发送段数: segs, 页面改写次数: 12 });
+  check((info.append.match(/译:/g) || []).length <= 1 && info.append.length < 400, '追加文字的段落不会被反复叠加翻译', info.append.slice(0, 120));
+  check(info.quiet.startsWith('译:') && (info.quiet.match(/译:/g) || []).length === 1, '未被改写的段落只翻译一次', info.quiet.slice(0, 60));
 }
 
 await ctx.close();

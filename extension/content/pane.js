@@ -92,7 +92,7 @@
       if (host.checkVisibility && !host.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
       if (u.fixed) { u.y = r.top - o; u.vy = r.top - viewportTop(); u.h = r.height; continue; }   // 固定元素不做锚点
       u.y = r.top - o; u.h = r.height;
-      out.push({ k: u.key, t: Math.round(u.y * 10) / 10, b: Math.round((u.y + u.h) * 10) / 10 });
+      out.push({ k: u.key, t: Math.round(u.y * 10) / 10, b: Math.round((u.y + u.h) * 10) / 10, n: u.text.length });
     }
     return out;
   }
@@ -133,7 +133,7 @@
   window.addEventListener('pointerup', () => { pointerDown = false; }, true);
   window.addEventListener('mouseup', () => { pointerDown = false; }, true);
 
-  let scrollRaf = 0;
+  let scrollRaf = 0, lastScrollT = 0, scrollDir = 1;
   function onScroll(e) {
     const tgt = e.target;
     const isMain = scroller ? tgt === scroller : (tgt === doc || tgt === doc.documentElement || tgt === doc.scrollingElement);
@@ -143,6 +143,7 @@
       scrollRaf = 0;
       const s = sstate();
       const tnow = now();
+      if (s.t !== lastScrollT) { scrollDir = s.t > lastScrollT ? 1 : -1; lastScrollT = s.t; }
       // 先判 prog：位置等于 shell 刚下发的目标（超出可滚范围时浏览器会截断，所以和截断值比较），
       // 即使本窗格刚有过输入也算 prog —— 否则两侧都"刚有输入"时会互抢驱动权
       let cause = 'other';
@@ -165,6 +166,7 @@
   /* --------------------------- 布局 / 变更 --------------------------- */
   const ro = new ResizeObserver(() => { lastLayoutTs = now(); scheduleAnchors(); });
   let applying = false;
+  const MAX_REWRITES = 2;
   const pendingRoots = new Set();
   let mutTimer = 0;
   const mo = new MutationObserver((records) => {
@@ -185,11 +187,17 @@
       if (!n.isConnected) continue;
       const u = seg.unitFromNode(n);
       if (u) {
-        // 已有单元内容被页面改写（如 React 重渲染把译文冲掉了）
-        if (ROLE === 'R' && u.tstate === 'done' && seg.currentText(u) !== u.applied) {
-          u.tstate = '';
-          u.text = seg.currentText(u);
-          changed = true;
+        // 已有单元内容被页面改写（如 React 重渲染把译文冲掉了）→ 重译。
+        // 防死循环、防烧钱：①改写后的内容里还带着我们的译文（页面是追加/混入，不是恢复原文）→ 不重译；
+        // ②每段最多重译 MAX_REWRITES 次。
+        if (ROLE === 'R' && u.tstate === 'done') {
+          const cur = seg.currentText(u);
+          if (cur !== u.applied) {
+            u.rewrites = (u.rewrites || 0) + 1;
+            const mixed = !!u.applied && (cur.includes(u.applied) || u.applied.includes(cur));
+            if (!mixed && u.rewrites <= MAX_REWRITES) { u.tstate = ''; u.text = cur; changed = true; }
+            else u.applied = cur;   // 接受页面的改写，不再追
+          }
         }
         continue;
       }
@@ -305,7 +313,7 @@
   //  · 已发出但用户已经划远的请求会被取消（服务端停止生成，省输出 token）
   //  · 已是目标语言的段落、隐藏元素不发送；缓存命中不计费
   const IDLE_MS = 300;
-  let lastError = '';
+  let lastError = '', lastErrorCode = '';
   let translateAll = false;
   let pumpTimer = 0, idleTimer = 0, lastScrollTs = 0;
   let batchSeq = 0, sentChars = 0, cancelled = 0;
@@ -358,8 +366,10 @@
   /** 当前窗口内待翻译的单元，按与阅读位置的距离排序 */
   function candidates(s) {
     const below = Math.max(0, Number(settings.prefetchScreens == null ? 0.5 : settings.prefetchScreens));
-    const lo = translateAll ? -Infinity : s.t - s.vh * 0.25;
-    const hi = translateAll ? Infinity : s.t + s.vh * (1 + below);
+    // 按滚动方向预取：往下读时多翻下方，往回翻时多翻上方
+    let lo = s.t - s.vh * 0.25, hi = s.t + s.vh * (1 + below);
+    if (scrollDir < 0) { lo = s.t - s.vh * below; hi = s.t + s.vh * 1.25; }
+    if (translateAll) { lo = -Infinity; hi = Infinity; }
     const out = [];
     for (const u of seg.units) {
       if (!u.translatable || u.tstate || Number.isNaN(u.y)) continue;   // NaN = 不可见 / 未测量
@@ -415,8 +425,11 @@
   function startBatch(batch) {
     const rec = { id: ++batchSeq, batch, cancelled: false };
     inflight.set(rec.id, rec);
-    for (const it of batch) it.u.tstate = 'inflight';
-    runBatch(rec).finally(() => { inflight.delete(rec.id); postStatus(); pumpSoon(); });
+    for (const it of batch) { it.u.tstate = 'inflight'; setPending(it); }
+    runBatch(rec).finally(() => {
+      for (const it of batch) clearPending(it);
+      inflight.delete(rec.id); postStatus(); pumpSoon();
+    });
   }
 
   /** 用户已经划远：取消仍在途、且整批都离开阅读区域的请求 */
@@ -431,10 +444,51 @@
       rec.cancelled = true;
       inflight.delete(rec.id);
       cancelled++;
-      for (const it of rec.batch) it.u.tstate = '';
+      for (const it of rec.batch) { clearPending(it); if (it.u.tstate === 'inflight') it.u.tstate = ''; }
       chrome.runtime.sendMessage({ type: 'translate:cancel', reqId: TOKEN + ':' + rec.id }).catch(() => {});
     }
   }
+
+  /** "正在翻译"提示：段落透明度呼吸。用 Web Animations，不改页面属性/样式，也不受页面 CSP 影响 */
+  function setPending(it) {
+    const el = it.ser.container || (it.u.el) || null;
+    if (!el || !el.animate || it.anim) return;
+    it.anim = el.animate([{ opacity: 1 }, { opacity: 0.4 }, { opacity: 1 }], { duration: 1200, iterations: Infinity, easing: 'ease-in-out' });
+  }
+  function clearPending(it) {
+    if (it.anim) { it.anim.cancel(); it.anim = null; }
+  }
+
+  /** 回填一段译文（流式到达或整批返回都走这里）；同一段可被更新（以最终结果为准） */
+  function applyItem(it, tr) {
+    const u = it.u;
+    if (typeof tr !== 'string') return false;
+    if (it.applied === tr) return true;
+    if (!seg.isAlive(u)) return false;
+    // 第一次回填前确认原文没被页面改写；改写了就丢弃，稍后重译
+    if (it.applied == null && seg.serialize(u).text !== it.ser.text) { clearPending(it); u.tstate = ''; return false; }
+    applying = true;
+    try { seg.apply(u, it.ser, tr); } finally { mo.takeRecords(); applying = false; }
+    const first = it.applied == null;
+    it.applied = tr;
+    u.applied = seg.currentText(u);
+    u.tstate = 'done';
+    clearPending(it);
+    const el = it.ser.container;
+    if (first && el && el.animate) el.animate([{ opacity: 0.25 }, { opacity: 1 }], { duration: 280, easing: 'ease-out' });
+    return true;
+  }
+
+  // 流式：SW 每翻好一段就推过来
+  chrome.runtime.onMessage.addListener((m) => {
+    if (!m || m.type !== 'translate:partial' || typeof m.reqId !== 'string') return;
+    const [tok, id] = m.reqId.split(':');
+    if (tok !== TOKEN) return;
+    const rec = inflight.get(+id);
+    if (!rec || rec.cancelled) return;
+    const it = rec.batch[m.i];
+    if (it && applyItem(it, m.text)) { lastLayoutTs = now(); scheduleAnchors(); postStatus(); }
+  });
 
   async function runBatch(rec) {
     const { batch } = rec;
@@ -452,29 +506,15 @@
     if (rec.cancelled) return;
     if (!res || res.error || !Array.isArray(res.results)) {
       lastError = (res && res.error) || PT.t('err.translate');
-      for (const it of batch) it.u.tstate = 'error';
+      lastErrorCode = (res && res.code) || '';
+      for (const it of batch) if (it.applied == null) it.u.tstate = 'error';
       return;
     }
-    lastError = '';
+    lastError = ''; lastErrorCode = '';
     sentChars += res.sentChars || 0;
-    applying = true;
-    try {
-      batch.forEach((it, i) => {
-        const u = it.u;
-        const tr = res.results[i];
-        if (typeof tr !== 'string' || !seg.isAlive(u)) { u.tstate = 'error'; return; }
-        // 请求期间页面改写了这段原文 → 丢弃，稍后重译
-        if (seg.serialize(u).text !== it.ser.text) { u.tstate = ''; return; }
-        seg.apply(u, it.ser, tr);
-        u.applied = seg.currentText(u);
-        u.tstate = 'done';
-        const el = it.ser.container;
-        if (el && el.animate) el.animate([{ opacity: 0.25 }, { opacity: 1 }], { duration: 280, easing: 'ease-out' });
-      });
-    } finally {
-      mo.takeRecords();
-      applying = false;
-    }
+    batch.forEach((it, i) => {
+      if (!applyItem(it, res.results[i]) && it.u.tstate === 'inflight') it.u.tstate = 'error';
+    });
     lastLayoutTs = now();
     scheduleAnchors();
   }
@@ -493,12 +533,12 @@
         else if (u.tstate === 'error') err++;
         else if (!u.tstate) { leftN++; leftChars += u.text.length; }
       }
-      post('status', { total, done, err, inflight: inflight.size, error: lastError, sent: sentChars, cancelled, leftN, leftChars });
+      post('status', { total, done, err, inflight: inflight.size, error: lastError, errCode: lastErrorCode, sent: sentChars, cancelled, leftN, leftChars });
     }, 200);
   }
   handlers.retry = () => {
     for (const u of seg.units) if (u.tstate === 'error') u.tstate = '';
-    lastError = '';
+    lastError = ''; lastErrorCode = '';
     pump();
   };
   handlers.translateAll = () => { translateAll = true; pump(); };
@@ -541,7 +581,10 @@
       if (sc !== scroller) { scroller = sc; if (sc) ro.observe(sc); scheduleAnchors(true); }
       else scheduleAnchors();
     }, 1500);
-    post('hello', { url: location.href, title: doc.title, s: sstate() });
+    // 反爬虫验证页（Cloudflare 等）：告诉外壳，给用户一个明确的提示
+    const head = (doc.title + ' ' + (doc.body ? doc.body.innerText.slice(0, 600) : '')).toLowerCase();
+    const challenge = /just a moment|attention required|security verification|verify you are human|checking your browser|请稍候|安全验证/.test(head);
+    post('hello', { url: location.href, title: doc.title, s: sstate(), challenge });
     scheduleAnchors(true);
   }
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', start, { once: true });

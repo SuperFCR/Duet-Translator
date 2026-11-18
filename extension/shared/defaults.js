@@ -15,6 +15,7 @@
     highlight: 'hover',          // 'hover' | 'off'
     syncScroll: true,
     stripFrameHeaders: true,     // 分屏期间对该标签页的子框架移除 X-Frame-Options / CSP
+    devMode: false,              // 开发者选项：显示 Mock 演示引擎
     prefetchScreens: 0.5,        // 视口下方预翻译的屏数（0 = 只翻可见区域）；上方固定 0.25 屏
     providers: [
       // name 留空 = 显示随界面语言变化的默认名（见 i18n 的 prov.*）
@@ -51,6 +52,24 @@
     const k = 'prov.' + p.id;
     const t = root.PT.t ? root.PT.t(k) : k;
     return t !== k ? t : p.id;
+  };
+  /** 这个引擎是否需要 API Key：DeepL 需要；OpenAI 兼容接口指向公网时需要，本机/内网地址（自部署）不强制 */
+  root.PT.needsKey = (p) => {
+    if (!p || p.type === 'mock') return false;
+    if (p.type === 'deepl') return true;
+    if (p.type !== 'openai') return false;
+    let h = '';
+    try { h = new URL(p.baseUrl).hostname; } catch (_) { return false; }
+    return !(h === 'localhost' || h.endsWith('.local') || h === '[::1]' || /^127\./.test(h) || /^10\./.test(h) ||
+      /^192\.168\./.test(h) || /^172\.(1[6-9]|2\d|3[01])\./.test(h));
+  };
+  root.PT.hasKey = (p) => !!(p && p.apiKey && String(p.apiKey).trim());
+  /** 按浏览器语言猜默认目标语言 */
+  root.PT.guessTargetLang = (nav) => {
+    const l = String(nav || 'en').toLowerCase();
+    if (l.startsWith('zh')) return /tw|hk|mo|hant/.test(l) ? 'zh-TW' : 'zh-CN';
+    const p = l.split('-')[0];
+    return LANGS.some((x) => x[0] === p) ? p : 'en';
   };
   /** 读取设置并与默认值合并（providers 以存储为准）；顺便设定界面语言 */
   root.PT.loadSettings = async function () {

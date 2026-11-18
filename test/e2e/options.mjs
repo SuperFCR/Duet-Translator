@@ -15,8 +15,53 @@ const dir = mkdtempSync(join(tmpdir(), 'st-opt-'));
 const ctx = await chromium.launchPersistentContext(dir, { channel: 'chromium', headless: true, args: [`--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`] });
 let [sw] = ctx.serviceWorkers(); if (!sw) sw = await ctx.waitForEvent('serviceworker');
 const id = new URL(sw.url()).host;
+const errs = [];
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const BASE = `http://127.0.0.1:${srv.port}`;
+
+/* ---------- 首次安装：自动打开引导页 ---------- */
+console.log('[welcome]');
+let wel = null;
+for (let i = 0; i < 40 && !wel; i++) { wel = ctx.pages().find((p) => p.url().includes('/welcome/welcome.html')); if (!wel) await sleep(150); }
+check(!!wel, '安装后自动打开引导页');
+if (wel) {
+  wel.on('pageerror', (e) => errs.push(String(e)));
+  await wel.waitForSelector('#engine option', { state: 'attached' });
+  check(await wel.locator('h1').textContent() === 'Welcome to Duet-Translator', '引导页跟随浏览器语言（英文）');
+  check((await sw.evaluate(async () => (await globalThis.PT.loadSettings()).targetLang)) === 'en', '首次安装：目标语言按浏览器语言设为 en');
+  const engines = await wel.locator('#engine option').evaluateAll((os) => os.map((o) => o.value));
+  check(engines[0] === 'deepseek' && !engines.includes('mock'), '默认 DeepSeek；Mock 默认隐藏', engines);
+  check(/\S/.test(await wel.locator('kbd').textContent()), '显示当前快捷键', await wel.locator('kbd').textContent());
+  // 没填 Key 就点「试一试」：拦下并提示，不打开新页面
+  const before = ctx.pages().length;
+  await wel.click('#try');
+  await sleep(500);
+  check(ctx.pages().length === before && (await wel.locator('#keyHint').getAttribute('class')).includes('warn') && /API key/.test(await wel.locator('#tryOut').textContent()),
+    '未填 Key 点「试一试」：就地提示先填 Key', await wel.locator('#tryOut').textContent());
+  // 换成本机自部署引擎（指向假服务，无需 Key）→ 测试连接 → 试一试：新标签页打开示例页并直接开启对读
+  await wel.selectOption('#engine', 'local-llm');
+  await wel.fill('#f-baseUrl', BASE + '/v1');
+  await wel.click('#test');
+  check(await wel.waitForFunction(() => /^OK/.test(document.getElementById('testOut').textContent), null, { timeout: 8000 }).then(() => true, () => false), '引导页「测试连接」可用');
+  await wel.goto(wel.url().split('?')[0] + '?demo=' + encodeURIComponent(BASE + '/article.html'));
+  await wel.waitForSelector('#engine option', { state: 'attached' });
+  await wel.setViewportSize({ width: 900, height: 1180 });
+  await wel.screenshot({ path: join(here, 'out', 'welcome-en.png'), fullPage: true });
+  const newPage = ctx.waitForEvent('page');
+  await wel.click('#try');
+  const demo = await newPage;
+  let RD = null;
+  for (let i = 0; i < 75 && !RD; i++) { RD = demo.frames().find((f) => f.name().startsWith('__pt:R:')); if (!RD) await sleep(200); }
+  check(!!RD, '「试一试」：打开示例页并直接开启对读');
+  check(!!RD && await RD.waitForFunction(() => document.body && document.body.innerText.includes('译:'), null, { timeout: 10000 }).then(() => true, () => false), '示例页出现译文');
+  await demo.close();
+  await wel.close();
+  await sw.evaluate(() => globalThis.PT.saveSettings({ activeProviderId: 'deepseek' }));
+}
+
+console.log('\n[options]');
 const page = await ctx.newPage();
-const errs = []; page.on('pageerror', (e) => errs.push(String(e)));
+page.on('pageerror', (e) => errs.push(String(e)));
 await page.goto(`chrome-extension://${id}/options/options.html`);
 await page.waitForSelector('fieldset.prov');
 // 界面语言：默认跟随浏览器（headless 为 en-US）→ 英文；切到中文立即生效并保存
@@ -50,11 +95,11 @@ check(errs.length === 0, '设置页无 JS 报错', errs);
 
 /* ---------- 工具栏弹窗：填 Key / 切引擎实时生效 / 开关分屏 ---------- */
 console.log('\n[popup]');
-const BASE = `http://127.0.0.1:${srv.port}`;
 await sw.evaluate(async (base) => {
   const s = await globalThis.PT.loadSettings();
   const providers = s.providers.filter((p) => p.id !== 'authfake').concat([{ id: 'authfake', type: 'openai', name: '需要 Key 的假服务', baseUrl: base + '/auth/v1', apiKey: '', model: 'fake-model', temperature: '', extraBody: '', batchChars: 1500, batchSize: 20, concurrency: 3, timeoutMs: 10000 }]);
-  await globalThis.PT.saveSettings({ providers, activeProviderId: 'authfake', targetLang: 'zh-CN' });
+  const cleared = providers.map((p) => (p.id === 'deepseek' ? Object.assign({}, p, { apiKey: '' }) : p));
+  await globalThis.PT.saveSettings({ providers: cleared, activeProviderId: 'deepseek', targetLang: 'zh-CN', devMode: false });
 }, BASE);
 const art = await ctx.newPage();
 await art.goto(`${BASE}/article.html`);
@@ -63,16 +108,27 @@ const pop = await ctx.newPage();
 pop.on('pageerror', (e) => errs.push(String(e)));
 await pop.goto(`chrome-extension://${id}/popup/popup.html?tab=${tabId}`);
 await pop.waitForFunction(() => document.getElementById('toggle').textContent.includes('开启'));
-check(await pop.locator('#engine').inputValue() === 'authfake', '弹窗显示当前引擎');
+check(!(await pop.locator('#engine option').evaluateAll((os) => os.map((o) => o.value))).includes('mock'), '弹窗默认不显示 Mock');
+// 当前引擎需要 Key 却没填：点「开启」被拦下，就地提示
+await pop.click('#toggle');
+await sleep(800);
+check(!(await art.evaluate(() => !!document.querySelector('pt-split-root'))) && (await pop.locator('#keyHint').getAttribute('class')).includes('warn'),
+  '未填 Key 点开启：不开分屏，提示先填 Key', await pop.locator('#keyHint').textContent());
+await pop.selectOption('#engine', 'authfake');
+check(await pop.locator('#engine').inputValue() === 'authfake', '弹窗切换当前引擎');
 check(await pop.locator('#f-apiKey').count() === 1 && await pop.locator('#f-baseUrl').count() === 1 && await pop.locator('#f-model').count() === 1, '弹窗可直接编辑 API Key / Base URL / 模型');
 await pop.click('#toggle');
 const status = () => art.evaluate(() => document.querySelector('pt-split-root')?.shadowRoot.getElementById('status').textContent || '');
 const waitFor = async (fn, ms = 15000) => { const t = Date.now(); while (Date.now() - t < ms) { if (await fn()) return true; await new Promise((r) => setTimeout(r, 200)); } return false; };
 check(await waitFor(async () => /API Key/.test(await status())), '未填 Key：分屏顶栏提示去插件图标填写', await status());
+check(await art.evaluate(() => !document.querySelector('pt-split-root').shadowRoot.getElementById('setkey').hidden), '顶栏出现「填写 API Key」按钮');
 check(await waitFor(async () => (await pop.locator('#toggle').textContent()).includes('关闭')), '弹窗按钮变为「关闭对照翻译」');
 const R = () => art.frames().find((f) => f.name().startsWith('__pt:R:'));
 await pop.fill('#f-apiKey', 'sk-test');
 check(await waitFor(async () => (await R().evaluate(() => document.body.innerText)).includes('译:')), '在弹窗填入 Key 后，已打开的分屏自动重试并出现译文');
+await sw.evaluate(() => globalThis.PT.saveSettings({ devMode: true }));   // 开发者选项打开后 Mock 才出现
+await pop.reload();
+await pop.waitForSelector('#engine option[value="mock"]', { state: 'attached' });
 await pop.selectOption('#engine', 'mock');
 check(await waitFor(async () => { const f = R(); return f && (await f.evaluate(() => document.body ? document.body.innerText : '').catch(() => '')).includes('【zh-CN】'); }), '在弹窗切换引擎，右侧立即用新引擎重翻');
 await pop.click('#test');
