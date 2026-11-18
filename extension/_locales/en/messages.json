@@ -1,14 +1,14 @@
 {
   "extName": {
-    "message": "Duet · Side-by-Side Reader"
+    "message": "Duet-Translator"
   },
   "extDesc": {
     "message": "Read a web page and its translation side by side with paragraph-aligned synchronized scrolling. Bring your own engine: self-hosted LLMs, DeepSeek, or DeepL."
   },
   "actionTitle": {
-    "message": "Duet"
+    "message": "Duet-Translator"
   },
   "cmdToggle": {
-    "message": "Open / close Duet on this page"
+    "message": "Open / close Duet-Translator on this page"
   }
 }

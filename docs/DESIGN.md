@@ -1,4 +1,4 @@
-# Duet · 对读 设计文档
+# Duet-Translator · 对读 设计文档
 
 左右分屏同时显示「原网页」和「翻译后的网页」，两侧按段落对齐同步滚动；翻译引擎可接自部署模型或任意翻译 API。目标浏览器为 Edge（Chromium，Manifest V3），Chrome 同样可用。
 

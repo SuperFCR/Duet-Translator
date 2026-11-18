@@ -1,10 +1,10 @@
-# Duet · 对读
+# Duet-Translator · 对读
 
 [English](README.md) | **简体中文**
 
-Duet 是一个 Edge / Chrome 扩展：左边原网页，右边译文网页，**按段落对齐、同步滚动**。翻译引擎由你决定：自部署大模型（vLLM、SGLang、Ollama…）、DeepSeek 等在线 API，或 DeepL。
+Duet-Translator 是一个 Edge / Chrome 扩展：左边原网页，右边译文网页，**按段落对齐、同步滚动**。翻译引擎由你决定：自部署大模型（vLLM、SGLang、Ollama…）、DeepSeek 等在线 API，或 DeepL。
 
-![Duet：左侧英文维基百科，右侧中文译文](docs/images/screenshot-zh.png)
+![Duet-Translator：左侧英文维基百科，右侧中文译文](docs/images/screenshot-zh.png)
 
 <sub>截图：英文维基百科 "Typography" 条目（CC BY-SA），由 DeepSeek V4.1 Flash 翻译；高亮的是左右对应的同一段落。</sub>
 
@@ -25,7 +25,7 @@ Duet 是一个 Edge / Chrome 扩展：左边原网页，右边译文网页，**�
 1. 下载或 clone 本仓库。
 2. 打开 `edge://extensions`（Chrome 为 `chrome://extensions`），打开 **开发人员模式**。
 3. 点 **加载解压缩的扩展**（**不是**"打包扩展"），选择 **`extension/`** 文件夹，也就是直接包含 `manifest.json` 的那一层。
-4. 在工具栏的"扩展"（拼图图标）菜单里把 Duet 固定到工具栏。
+4. 在工具栏的"扩展"（拼图图标）菜单里把 Duet-Translator 固定到工具栏。
 
 更新代码后，在扩展卡片上点 **重新加载**，再刷新网页。
 
@@ -33,9 +33,9 @@ Duet 是一个 Edge / Chrome 扩展：左边原网页，右边译文网页，**�
 
 ## 设置引擎
 
-<img src="docs/images/popup-zh.png" width="320" align="right" alt="Duet 弹窗">
+<img src="docs/images/popup-zh.png" width="320" align="right" alt="Duet-Translator 弹窗">
 
-点工具栏上的 Duet 图标：
+点工具栏上的 Duet-Translator 图标：
 
 1. 选择 **翻译引擎**（默认 DeepSeek V4.1 Flash）；
 2. 粘贴 **API Key**，需要的话修改接口地址、模型名。修改自动保存；

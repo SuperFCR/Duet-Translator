@@ -1,10 +1,10 @@
-# Duet · Side-by-Side Reader
+# Duet-Translator
 
 **English** | [简体中文](README.zh-CN.md)
 
-Duet is an Edge / Chrome extension that shows a web page and its translation **side by side**, and keeps the two panes scrolling **in sync, paragraph by paragraph**. You bring the translation engine: a self-hosted LLM (vLLM, SGLang, Ollama…), a hosted API such as DeepSeek, or DeepL.
+Duet-Translator is an Edge / Chrome extension that shows a web page and its translation **side by side**, and keeps the two panes scrolling **in sync, paragraph by paragraph**. You bring the translation engine: a self-hosted LLM (vLLM, SGLang, Ollama…), a hosted API such as DeepSeek, or DeepL.
 
-![Duet: English Wikipedia on the left, Chinese translation on the right](docs/images/screenshot-en.png)
+![Duet-Translator: English Wikipedia on the left, Chinese translation on the right](docs/images/screenshot-en.png)
 
 <sub>Screenshot: the English Wikipedia article "Typography" (CC BY-SA), translated by DeepSeek V4.1 Flash. The highlighted paragraph is the same one on both sides.</sub>
 
@@ -20,12 +20,12 @@ Duet is an Edge / Chrome extension that shows a web page and its translation **s
 
 ## Install
 
-Duet is not on the extension stores yet; load it from source:
+Duet-Translator is not on the extension stores yet; load it from source:
 
 1. Download or clone this repository.
 2. Open `edge://extensions` (or `chrome://extensions`) and turn on **Developer mode**.
 3. Click **Load unpacked** (not "Pack extension") and select the **`extension/`** folder — the one that directly contains `manifest.json`.
-4. Pin the Duet icon from the extensions (puzzle-piece) menu.
+4. Pin the Duet-Translator icon from the extensions (puzzle-piece) menu.
 
 After pulling new code, click **Reload** on the extension card and refresh the page.
 
@@ -33,9 +33,9 @@ After pulling new code, click **Reload** on the extension card and refresh the p
 
 ## Set up an engine
 
-<img src="docs/images/popup-en.png" width="320" align="right" alt="Duet popup">
+<img src="docs/images/popup-en.png" width="320" align="right" alt="Duet-Translator popup">
 
-Click the Duet icon in the toolbar:
+Click the Duet-Translator icon in the toolbar:
 
 1. Choose a **translation engine** (DeepSeek V4.1 Flash by default).
 2. Paste your **API key**, and change the base URL or model if needed. Changes are saved automatically.
@@ -69,8 +69,8 @@ If your model runs on a remote GPU box, just make its address reachable from the
 | Action | |
 |---|---|
 | Toolbar icon | Open the popup: start/stop, engine, key, language |
-| `Alt+Shift+Y` (`⌥⇧Y` on macOS) | Start / stop Duet on the current tab (change it at `edge://extensions/shortcuts`) |
-| Right-click → *Duet: read side by side from here* | Start at the paragraph you clicked |
+| `Alt+Shift+Y` (`⌥⇧Y` on macOS) | Start / stop Duet-Translator on the current tab (change it at `edge://extensions/shortcuts`) |
+| Right-click → *Duet-Translator: read side by side from here* | Start at the paragraph you clicked |
 | Top bar | Target language, engine, sync on/off, hover highlight, **Whole page**, swap sides, settings, close |
 | Divider | Drag to resize the panes |
 | Close | The original page returns to the paragraph you were reading |
@@ -90,7 +90,7 @@ On the Wikipedia article above, four stops one screen apart sent about 12,000 ch
 
 - API keys are stored only in this browser (`chrome.storage.local`, not synced) and are used only by the extension's background worker, never exposed to web pages.
 - Page text is sent only to the engine you configure.
-- To split pages that forbid being embedded, Duet temporarily removes `X-Frame-Options` / CSP response headers **for the frames of that one tab** while it is open. You can turn this off in settings (such sites then cannot be split).
+- To split pages that forbid being embedded, Duet-Translator temporarily removes `X-Frame-Options` / CSP response headers **for the frames of that one tab** while it is open. You can turn this off in settings (such sites then cannot be split).
 
 ## How it works
 

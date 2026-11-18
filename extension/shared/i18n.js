@@ -7,7 +7,7 @@
   'use strict';
   const D = {
     zh: {
-      brand: 'Duet · 对读',
+      brand: 'Duet-Translator · 对读',
       'ui.auto': '自动', 'ui.zh': '中文', 'ui.en': 'English',
 
       'sh.loading': '加载中…',
@@ -88,7 +88,7 @@
       'prov.local-llm': '自部署 LLM（OpenAI 兼容）',
       'prov.deepl': 'DeepL API',
 
-      'opt.title': 'Duet · 对读 设置',
+      'opt.title': 'Duet-Translator 设置',
       'opt.general': '通用',
       'opt.uiLang': '界面语言',
       'opt.source': '源语言',
@@ -117,7 +117,7 @@
       'opt.extraBodyBad': '「{name}」的额外请求体不是合法 JSON',
     },
     en: {
-      brand: 'Duet',
+      brand: 'Duet-Translator',
       'ui.auto': 'Auto', 'ui.zh': '中文', 'ui.en': 'English',
 
       'sh.loading': 'Loading…',
@@ -135,8 +135,8 @@
       'sh.retry.title': 'Retry failed paragraphs',
       'sh.swap.title': 'Swap sides',
       'sh.opts.title': 'Settings',
-      'sh.close.title': 'Close Duet',
-      'sh.confirmAll': 'Translate the remaining {n} paragraphs on this page (about {chars} characters; cached ones are free)?\nBy default Duet only translates what you scroll to.',
+      'sh.close.title': 'Close Duet-Translator',
+      'sh.confirmAll': 'Translate the remaining {n} paragraphs on this page (about {chars} characters; cached ones are free)?\nBy default Duet-Translator only translates what you scroll to.',
       'sh.status': '{lang} · {done}/{total} paragraphs translated · {sent} chars sent',
       'sh.inflight': ' · {n} in flight',
       'sh.failed': ' · {n} failed',
@@ -153,10 +153,10 @@
       'err.noContent': 'Response is missing choices[0].message.content',
       'err.extraBody': 'extraBody is not valid JSON',
       'err.deepl': 'Unexpected DeepL response format',
-      'ctx.menu': 'Duet: read side by side from here',
+      'ctx.menu': 'Duet-Translator: read side by side from here',
 
       'pop.on': 'Read this page side by side',
-      'pop.off': 'Close Duet',
+      'pop.off': 'Close Duet-Translator',
       'pop.noTab': 'No active tab',
       'pop.unavailable': 'Not available here (browser pages / store / PDF)',
       'pop.engine': 'Translation engine',
@@ -198,7 +198,7 @@
       'prov.local-llm': 'Self-hosted LLM (OpenAI-compatible)',
       'prov.deepl': 'DeepL API',
 
-      'opt.title': 'Duet Settings',
+      'opt.title': 'Duet-Translator Settings',
       'opt.general': 'General',
       'opt.uiLang': 'Interface language',
       'opt.source': 'Source language',
@@ -210,7 +210,7 @@
       'opt.prefetch.title': 'Only the visible area plus this many screens below it are translated. New positions are translated once scrolling stops; content you fly past is skipped.',
       'opt.sync': 'Sync scroll',
       'opt.strip': 'Allow sites that forbid iframes',
-      'opt.strip.title': 'While Duet is open, strip X-Frame-Options / CSP response headers for that tab\'s frames only, so sites that forbid embedding can still be split',
+      'opt.strip.title': 'While Duet-Translator is open, strip X-Frame-Options / CSP response headers for that tab\'s frames only, so sites that forbid embedding can still be split',
       'opt.engines': 'Translation engines',
       'opt.engines.hint': 'The OpenAI-compatible type works with vLLM / SGLang / Ollama (<code>http://host:11434/v1</code>) / LM Studio / llama.cpp server, as well as DeepSeek, Qwen (DashScope compatible mode), OpenRouter and more. API keys are kept only in this browser\'s <code>chrome.storage.local</code> and used only by the extension background.',
       'opt.addOpenai': '+ OpenAI-compatible',

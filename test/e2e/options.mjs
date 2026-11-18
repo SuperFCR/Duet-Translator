@@ -79,10 +79,10 @@ await pop.click('#test');
 check(await waitFor(async () => (await pop.locator('#testOut').textContent()).startsWith('成功')), '弹窗「测试连接」可用', await pop.locator('#testOut').textContent());
 // 中英切换：弹窗与已打开分屏的顶栏一起切换
 await pop.click('#uiLang button[data-v="en"]');
-check(await waitFor(async () => (await pop.locator('#toggle').textContent()) === 'Close Duet' && (await pop.locator('#test').textContent()) === 'Test connection'), '弹窗切到英文');
+check(await waitFor(async () => (await pop.locator('#toggle').textContent()) === 'Close Duet-Translator' && (await pop.locator('#test').textContent()) === 'Test connection'), '弹窗切到英文');
 check(await waitFor(async () => /paragraphs translated/.test(await status())), '已打开分屏的顶栏同步切到英文', await status());
 const ctxTitle = await sw.evaluate(() => globalThis.PT.t('ctx.menu'));
-check(ctxTitle.startsWith('Duet:'), '右键菜单文字随之切换', ctxTitle);
+check(ctxTitle.startsWith('Duet-Translator:'), '右键菜单文字随之切换', ctxTitle);
 await pop.click('#uiLang button[data-v="zh"]');
 check(await waitFor(async () => /已翻译/.test(await status()) && (await pop.locator('#toggle').textContent()) === '关闭对读'), '切回中文');
 await pop.click('#toggle');

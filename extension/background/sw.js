@@ -40,7 +40,7 @@ async function toggle(tabId, opts) {
     await chrome.scripting.executeScript({ target: { tabId }, files: SHELL_FILES });
   } catch (e) {
     // edge:// 、扩展商店、PDF 查看器等页面不允许注入
-    console.warn('[Duet] inject failed:', e);
+    console.warn('[Duet-Translator] inject failed:', e);
     chrome.action.setBadgeText({ tabId, text: '×' });
     chrome.action.setBadgeBackgroundColor({ tabId, color: '#b91c1c' });
     setTimeout(() => chrome.action.setBadgeText({ tabId, text: '' }), 2500);

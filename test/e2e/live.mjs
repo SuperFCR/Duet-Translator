@@ -39,7 +39,7 @@ try {
       id: 'live', type: 'openai', name: 'live', temperature: 0.2, batchChars: 2400, batchSize: 24, concurrency: 3, timeoutMs: 120000,
     }, cfg)]);
     await globalThis.PT.saveSettings({ providers, activeProviderId: 'live', targetLang: 'zh-CN', highlight: 'hover' });
-  }, { baseUrl: env.LIVE_BASE_URL, apiKey: env.LIVE_API_KEY, model: env.LIVE_MODEL, extraBody: env.LIVE_EXTRA || '' });
+  }, { name: env.LIVE_NAME || 'live', baseUrl: env.LIVE_BASE_URL, apiKey: env.LIVE_API_KEY, model: env.LIVE_MODEL, extraBody: env.LIVE_EXTRA || '' });
 
   // 先在 SW 里直连一次，确认引擎可用
   const t0 = Date.now();

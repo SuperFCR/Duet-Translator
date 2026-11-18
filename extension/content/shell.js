@@ -74,7 +74,7 @@
           if (!best || r.top < best.top) best = { u: x, top: r.top };
         }
         if (best && window.scrollY > 0) return { k: best.u.key, off: Math.max(0, best.top) };
-      } catch (e) { console.warn('[Duet] reading point failed', e); }
+      } catch (e) { console.warn('[Duet-Translator] reading point failed', e); }
       return null;
     }
 

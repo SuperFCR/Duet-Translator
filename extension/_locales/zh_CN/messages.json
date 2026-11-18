@@ -1,12 +1,12 @@
 {
   "extName": {
-    "message": "Duet · 对读"
+    "message": "Duet-Translator · 对读"
   },
   "extDesc": {
     "message": "左右分屏对照阅读原网页与译文，按段落对齐同步滚动；翻译引擎可接自部署模型、DeepSeek 或 DeepL。"
   },
   "actionTitle": {
-    "message": "Duet · 对读"
+    "message": "Duet-Translator · 对读"
   },
   "cmdToggle": {
     "message": "在此页打开 / 关闭对读"
