@@ -21,6 +21,15 @@ export function startServer(port = 0) {
     const slow = url.pathname === '/slow/v1/chat/completions';   // 模拟慢模型：便于测试"划走后取消"
     const drip = url.pathname === '/drip/v1/chat/completions';   // 流式逐条慢慢吐：便于测试"翻好一段显示一段"
     const auth = url.pathname === '/auth/v1/chat/completions';   // 需要 Authorization 头，否则 401
+    // 模拟 Key 与平台不匹配（MiniMax 风格的 2049）与"该模型不允许关闭推理"（400）
+    if (req.method === 'POST' && url.pathname === '/badkey/v1/chat/completions') {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      return res.end('{"type":"error","error":{"type":"authorized_error","message":"invalid api key (2049)","http_code":"401"}}');
+    }
+    if (req.method === 'POST' && url.pathname === '/think400/v1/chat/completions') {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end('{"type":"error","error":{"type":"bad_request_error","message":"invalid params, model requires adaptive thinking; thinking.type=\\"disabled\\" is not allowed (2013)"}}');
+    }
     if (req.method === 'POST' && auth && !req.headers.authorization) {
       res.writeHead(401, { 'Content-Type': 'application/json' });
       return res.end('{"error":{"message":"Authentication Fails, no api key"}}');

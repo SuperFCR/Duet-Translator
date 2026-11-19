@@ -69,7 +69,11 @@
         const inp = doc.createElement('input');
         inp.type = type; inp.placeholder = ph ? t(ph) : ''; inp.value = p[key] || ''; inp.id = 'f-' + key;
         inp.spellcheck = false; inp.autocomplete = 'off';
-        inp.oninput = () => { p[key] = inp.value.trim(); keyHint(false); scheduleSave(); };
+        inp.oninput = () => {
+          let v = inp.value.trim();
+          if (key === 'apiKey') v = v.replace(/^Bearer\s+/i, '');
+          p[key] = v; keyHint(false); scheduleSave();
+        };
         if (type === 'password') {
           const row = doc.createElement('div'); row.className = 'keyrow';
           const eye = doc.createElement('button'); eye.type = 'button'; eye.textContent = t('pop.show');

@@ -56,6 +56,7 @@ Duet-Translator 是一个 Edge / Chrome 扩展：左边原网页，右边译文�
 | 引擎 | 需要填写 |
 |---|---|
 | DeepSeek V4.1 Flash | 只需 API Key。接口地址 `https://api.deepseek.com`，模型 `deepseek-flash`，已预置 `{"thinking": {"type": "disabled"}}` |
+| MiniMax M3.1 Flash | 只需 API Key。国内站（platform.minimaxi.com）的 Key 用 `https://api.minimaxi.com/v1`；国际站（platform.minimax.io）的 Key 要改成 `https://api.minimax.io/v1`，两边的 Key 不通用。已预置 `{"reasoning_effort": "low"}`，这个模型不允许关闭推理 |
 | 自部署 LLM（OpenAI 兼容） | 接口地址到 `/v1` 为止，例如 `http://127.0.0.1:8000/v1`；模型名填服务端的模型名；Key 可空 |
 | DeepL | Endpoint（免费版为 `https://api-free.deepl.com`）和 Auth Key |
 | Mock | 离线演示，不调用任何 API（在「更多设置 → 开发者选项」里打开后才显示） |
@@ -63,6 +64,7 @@ Duet-Translator 是一个 Edge / Chrome 扩展：左边原网页，右边译文�
 常用的 **额外请求体**（更多设置 → 对应引擎）：
 
 - DeepSeek V4.1 Flash：`{"thinking": {"type": "disabled"}}`。翻译不需要推理，实测单段延迟从 5.1 秒降到 1.9 秒，输出 token 从 411 降到 68。
+- MiniMax M3.1 Flash：`{"reasoning_effort": "low"}`。推理关不掉，但调低后实测输出 token 从 508 降到 146，延迟从 9.1 秒降到 4.5 秒。
 - vLLM / SGLang 上的 Qwen3：`{"chat_template_kwargs": {"enable_thinking": false}}`
 
 模型部署在远程 GPU 机器上时，只要浏览器能访问到它的地址即可，例如 `ssh -L 8000:localhost:8000 gpu-host`，接口地址填 `http://127.0.0.1:8000/v1`。

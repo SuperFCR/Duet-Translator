@@ -151,5 +151,29 @@ for (const l of ['en', 'zh']) {
   await pop.screenshot({ path: join(here, 'out', `popup-${l}.png`) });
 }
 check(errs.length === 0, '弹窗无 JS 报错', errs);
+
+/* ---------- 常见配置错误给出可操作的提示；新预设自动补给老用户 ---------- */
+console.log('\n[errors & presets]');
+const tryCfg = (cfg) => sw.evaluate(async (c) => {
+  try { await translate({ segments: ['Hello'], cfg: c }, {}); return { ok: true }; }
+  catch (e) { return { message: String(e.message), code: e.code || '' }; }
+}, cfg);
+const base = { type: 'openai', model: 'm', temperature: '', extraBody: '', batchChars: 1500, batchSize: 20, concurrency: 1, timeoutMs: 8000 };
+const bad = await tryCfg({ ...base, id: 'bk', baseUrl: BASE + '/badkey/v1', apiKey: 'sk-wrong-platform' });
+check(bad.code === 'badKey' && /同一平台|same platform/.test(bad.message) && /2049/.test(bad.message), 'Key 无效：提示检查平台/地址，并附原始错误', bad);
+const th = await tryCfg({ ...base, id: 'th', baseUrl: BASE + '/think400/v1', apiKey: 'k', extraBody: '{"thinking":{"type":"disabled"}}' });
+check(/reasoning_effort/.test(th.message), '模型不允许关推理：提示删掉 thinking、改用 reasoning_effort', th.message.slice(0, 90));
+const merged = await sw.evaluate(async () => {
+  const s = await globalThis.PT.loadSettings();
+  // 模拟老版本存下的设置：没有 minimax 预设
+  await chrome.storage.local.set({ settings: Object.assign({}, s, { providers: s.providers.filter((p) => p.id !== 'minimax'), removedPresets: [] }) });
+  const a = (await globalThis.PT.loadSettings()).providers.map((p) => p.id);
+  await chrome.storage.local.set({ settings: Object.assign({}, s, { providers: s.providers.filter((p) => p.id !== 'minimax'), removedPresets: ['minimax'] }) });
+  const b = (await globalThis.PT.loadSettings()).providers.map((p) => p.id);
+  const mm = (await globalThis.PT.loadSettings()) && globalThis.PT.DEFAULTS.providers.find((p) => p.id === 'minimax');
+  return { a, b, mm: { baseUrl: mm.baseUrl, model: mm.model, extraBody: mm.extraBody } };
+});
+check(merged.a.includes('minimax') && !merged.b.includes('minimax'), '新预设自动补给老用户；用户删掉的不再加回', merged);
+check(merged.mm.baseUrl === 'https://api.minimaxi.com/v1' && merged.mm.model === 'MiniMax-M3.1-Flash' && /reasoning_effort/.test(merged.mm.extraBody), 'MiniMax 预设：国内站地址 + M3.1 Flash + 低推理', merged.mm);
 await ctx.close(); srv.close(); rmSync(dir, { recursive: true, force: true });
 console.log(fail ? `${fail} 项失败` : '全部通过'); process.exit(fail ? 1 : 0);

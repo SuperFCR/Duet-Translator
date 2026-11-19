@@ -125,6 +125,20 @@ async function translate(msg, sender) {
   try { return await translateInner(msg, ac && ac.signal, partial); } finally { if (ac) aborts.delete(msg.reqId); }
 }
 
+/** 把常见的服务端报错翻成能照着改的提示（原始信息附在后面便于排查） */
+function friendlyError(e, cfg) {
+  const m = String((e && e.message) || e);
+  const host = (() => { try { return new URL(cfg.baseUrl || cfg.endpoint).hostname; } catch (_) { return ''; } })();
+  if (/HTTP 40[13]/.test(m) && cfg.type !== 'mock') {
+    if (!PT.hasKey(cfg)) return noKeyError();
+    const err = new Error(PT.t('err.badKey') + (/minimax/i.test(host) ? ' ' + PT.t('err.hintMinimax') : '') + ' — ' + m.slice(0, 200));
+    err.code = 'badKey';
+    return err;
+  }
+  if (/HTTP 400/.test(m) && /thinking|reasoning/i.test(m)) return new Error(PT.t('err.thinking') + ' — ' + m.slice(0, 200));
+  return e;
+}
+
 function noKeyError() {
   const e = new Error(PT.t('err.noKey'));
   e.code = 'noKey';
@@ -144,9 +158,7 @@ async function translateInner(msg, signal, partial) {
   try {
     return await translateCore(msg, cfg, impl, ctx, segs, results, signal, partial);
   } catch (e) {
-    const m = String((e && e.message) || e);
-    if (!PT.hasKey(cfg) && cfg.type !== 'mock' && /HTTP 40[13]/.test(m)) throw noKeyError();
-    throw e;
+    throw friendlyError(e, cfg);
   }
 }
 

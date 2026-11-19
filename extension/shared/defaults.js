@@ -28,6 +28,14 @@
         batchChars: 1500, batchSize: 20, concurrency: 4, timeoutMs: 90000,
       },
       {
+        // MiniMax 国内站（platform.minimaxi.com）；国际站 Key 请把地址改成 https://api.minimax.io/v1
+        // M3.1 Flash 不允许关闭推理，用 reasoning_effort: low：实测输出 token 508→146、延迟 9.1s→4.5s
+        id: 'minimax', type: 'openai', name: '',
+        baseUrl: 'https://api.minimaxi.com/v1', apiKey: '', model: 'MiniMax-M3.1-Flash',
+        temperature: 0.2, extraBody: '{"reasoning_effort": "low"}', systemPrompt: '',
+        batchChars: 1500, batchSize: 20, concurrency: 4, timeoutMs: 90000,
+      },
+      {
         id: 'local-llm', type: 'openai', name: '',
         baseUrl: 'http://127.0.0.1:8000/v1', apiKey: '', model: 'Qwen/Qwen3-8B',
         temperature: 0.2, extraBody: '', systemPrompt: '',
@@ -75,6 +83,11 @@
   root.PT.loadSettings = async function () {
     const { settings } = await chrome.storage.local.get('settings');
     const s = Object.assign({}, DEFAULTS, settings || {});
+    s.providers = JSON.parse(JSON.stringify(s.providers || []));
+    // 新版本新增的预设引擎补进老用户的列表（用户主动删过的不再加回来）
+    const removed = new Set(s.removedPresets || []);
+    const have = new Set(s.providers.map((p) => p.id));
+    for (const p of DEFAULTS.providers) if (!have.has(p.id) && !removed.has(p.id)) s.providers.push(JSON.parse(JSON.stringify(p)));
     if (root.PT.i18n) root.PT.i18n.setLang(s.uiLang);
     return s;
   };

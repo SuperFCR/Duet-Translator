@@ -341,8 +341,9 @@
     onStatus(d) {
       this.lastStatus = d;
       const retry = this.$('retry');
-      retry.hidden = !d.err || d.errCode === 'noKey';
-      this.$('setkey').hidden = d.errCode !== 'noKey';   // 没填 Key：直接给入口
+      const keyIssue = d.errCode === 'noKey' || d.errCode === 'badKey';
+      retry.hidden = !d.err || keyIssue;
+      this.$('setkey').hidden = !keyIssue;   // 没填 / 填错 Key：直接给入口
       this.$('busy').hidden = !d.inflight;
       const f = PT.i18n.fmtNum;
       let txt = PT.t('sh.status', { lang: PT.langName(this.settings.targetLang), done: d.done, total: d.total, sent: f(d.sent) });

@@ -56,6 +56,7 @@ Batch size, concurrency, extra request parameters, a custom prompt and additiona
 | Engine | What to fill in |
 |---|---|
 | DeepSeek V4.1 Flash | API key only. Base URL `https://api.deepseek.com`, model `deepseek-flash`, with `{"thinking": {"type": "disabled"}}` preset |
+| MiniMax M3.1 Flash | API key only. Base URL `https://api.minimaxi.com/v1` for keys from the China site (platform.minimaxi.com); change it to `https://api.minimax.io/v1` for international keys (platform.minimax.io). Keys do not work across the two. Preset `{"reasoning_effort": "low"}`; this model does not allow turning reasoning off |
 | Self-hosted LLM (OpenAI-compatible) | Base URL up to `/v1`, e.g. `http://127.0.0.1:8000/v1`, and the model name served by your server. Key is optional |
 | DeepL | Endpoint (`https://api-free.deepl.com` for the free plan) and auth key |
 | Mock | Offline demo, calls no API (shown after enabling *More settings → Developer options*) |
@@ -63,6 +64,7 @@ Batch size, concurrency, extra request parameters, a custom prompt and additiona
 Useful **extra request body** values (More settings → engine):
 
 - DeepSeek V4.1 Flash: `{"thinking": {"type": "disabled"}}` — translation does not need reasoning. In our tests this cut the latency of one paragraph from 5.1 s to 1.9 s and output tokens from 411 to 68.
+- MiniMax M3.1 Flash: `{"reasoning_effort": "low"}` — reasoning cannot be disabled, but low effort cut output tokens from 508 to 146 and latency from 9.1 s to 4.5 s in our test.
 - Qwen3 on vLLM / SGLang: `{"chat_template_kwargs": {"enable_thinking": false}}`
 
 If your model runs on a remote GPU box, just make its address reachable from the browser, e.g. `ssh -L 8000:localhost:8000 gpu-host` and use `http://127.0.0.1:8000/v1`.

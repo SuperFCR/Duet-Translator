@@ -37,6 +37,7 @@
 
   let settings = await PT.loadSettings();
   const providers = JSON.parse(JSON.stringify(settings.providers || []));
+  const removedPresets = new Set(settings.removedPresets || []);
 
   function fillLangs() {
     const opts = PT.LANGS.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
@@ -72,7 +73,11 @@
         inp.placeholder = key === 'name' ? PT.provName(Object.assign({}, p, { name: '' })) : (ph || '');
         inp.value = p[key] == null ? '' : p[key];
         inp.oninput = () => {
-          p[key] = type === 'number' ? (inp.value === '' ? '' : +inp.value) : inp.value;
+          let v = inp.value;
+          // Key / 地址去掉首尾空格；Key 顺手去掉误粘贴的 "Bearer " 前缀
+          if (key === 'apiKey') v = v.trim().replace(/^Bearer\s+/i, '');
+          else if (key === 'baseUrl' || key === 'endpoint') v = v.trim();
+          p[key] = type === 'number' ? (v === '' ? '' : +v) : v;
           if (key === 'name') fillActive();
         };
         l.append(inp);
@@ -80,6 +85,7 @@
       }
       node.querySelector('.del').onclick = () => {
         if (!confirm(t('opt.delConfirm', { name: PT.provName(p) }))) return;
+        if (PT.DEFAULTS.providers.some((d) => d.id === p.id)) removedPresets.add(p.id);   // 删掉的预设以后不再自动加回
         providers.splice(idx, 1); render(); fillActive();
       };
       const out = node.querySelector('.out');
@@ -139,6 +145,7 @@
       syncScroll: $('syncScroll').checked,
       stripFrameHeaders: $('stripFrameHeaders').checked,
       devMode: $('devMode').checked,
+      removedPresets: [...removedPresets],
       providers,
     });
     $('saved').textContent = t('opt.saved');

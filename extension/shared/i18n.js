@@ -52,6 +52,9 @@
 
       'err.translate': '翻译失败',
       'err.noKey': '未填写 API Key：点击浏览器工具栏上的插件图标填写',
+      'err.badKey': 'API Key 无效（HTTP 401）：请确认 Key 与接口地址属于同一平台、没有多余空格。',
+      'err.hintMinimax': 'MiniMax 国内站（platform.minimaxi.com）的 Key 配 https://api.minimaxi.com/v1，国际站（platform.minimax.io）的 Key 配 https://api.minimax.io/v1。',
+      'err.thinking': '这个模型不允许关闭推理：请删掉「额外请求体」里的 thinking 设置，可改用 {"reasoning_effort": "low"} 降低推理开销。',
       'err.noProvider': '未找到当前翻译引擎配置，请在设置页检查',
       'err.unknownType': '未知引擎类型：{type}',
       'err.count': '引擎返回条数不一致',
@@ -102,6 +105,7 @@
       'type.openai': 'OpenAI 兼容', 'type.deepl': 'DeepL', 'type.mock': 'Mock',
       'prov.mock': 'Mock（离线演示）',
       'prov.deepseek': 'DeepSeek V4.1 Flash',
+      'prov.minimax': 'MiniMax M3.1 Flash（国内站）',
       'prov.local-llm': '自部署 LLM（OpenAI 兼容）',
       'prov.deepl': 'DeepL API',
 
@@ -179,6 +183,9 @@
 
       'err.translate': 'Translation failed',
       'err.noKey': 'No API key: click the extension icon in the toolbar to enter one',
+      'err.badKey': 'Invalid API key (HTTP 401): check that the key belongs to the same platform as the base URL and has no extra spaces.',
+      'err.hintMinimax': 'MiniMax China keys (platform.minimaxi.com) use https://api.minimaxi.com/v1; international keys (platform.minimax.io) use https://api.minimax.io/v1.',
+      'err.thinking': 'This model does not allow turning reasoning off: remove the thinking setting from the extra request body; {"reasoning_effort": "low"} reduces reasoning instead.',
       'err.noProvider': 'Active translation engine not found; check the settings page',
       'err.unknownType': 'Unknown engine type: {type}',
       'err.count': 'The engine returned a different number of items',
@@ -229,6 +236,7 @@
       'type.openai': 'OpenAI-compatible', 'type.deepl': 'DeepL', 'type.mock': 'Mock',
       'prov.mock': 'Mock (offline demo)',
       'prov.deepseek': 'DeepSeek V4.1 Flash',
+      'prov.minimax': 'MiniMax M3.1 Flash (China site)',
       'prov.local-llm': 'Self-hosted LLM (OpenAI-compatible)',
       'prov.deepl': 'DeepL API',
 
