@@ -1,0 +1,142 @@
+<template>
+  <!--
+    COST BEAT: edit the "default" values in data-composition-variables below.
+      saving      the headline number: "75" renders "~75%" and counts up from 0; non-numeric text is shown as-is.
+                  Basis: DeepSeek on Wikipedia "Typography", reading 4 screens sent ~11.6k chars vs ~46.6k
+                  for the whole page.
+      savingUnit  the words under the number.
+      savingNote  the comparison line under that.
+  -->
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      container-type: size;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      color: #fff;
+    }
+    #cost-flood {
+      position: absolute;
+      inset: 0;
+      background: var(--flood);
+    }
+    #cost-stack {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    #cost-big {
+      font-size: 300px;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      line-height: 0.95;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    #cost-big .cost-tilde {
+      font-size: 0.6em;
+      vertical-align: 0.22em;
+      margin-right: 0.04em;
+      opacity: 0.8;
+    }
+    #cost-big .cost-pct {
+      font-size: 0.7em;
+      margin-left: 0.03em;
+    }
+    #cost-unit {
+      margin-top: 22px;
+      font-size: 104px;
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      color: var(--gold);
+    }
+    #cost-unit span {
+      display: inline-block;
+    }
+    #cost-note {
+      text-wrap: balance;
+      margin-top: 26px;
+      font-size: 38px;
+      color: rgba(255, 255, 255, 0.86);
+    }
+    @container (max-aspect-ratio: 5/4) {
+      #cost-big {
+        font-size: 250px;
+      }
+      #cost-unit {
+        font-size: 88px;
+      }
+      #cost-note {
+        font-size: 32px;
+        max-width: 880px;
+      }
+    }
+  </style>
+  <div
+    id="root"
+    data-composition-id="cost"
+    data-composition-variables='[
+      {"id":"saving","type":"string","label":"Saving (%)","default":"75"},
+      {"id":"savingUnit","type":"string","label":"Under the number","default":"less text sent"},
+      {"id":"savingNote","type":"string","label":"Comparison line","default":"than translating the whole page"}
+    ]'
+  >
+    <div id="cost-flood"></div>
+    <div id="cost-stack">
+      <div id="cost-big"><span class="cost-tilde">~</span><span id="cost-num">75</span><span class="cost-pct">%</span></div>
+      <div id="cost-unit">less text sent</div>
+      <div id="cost-note">than translating the whole page</div>
+    </div>
+  </div>
+  <script>
+    const vars = (window.__hyperframes && window.__hyperframes.getVariables && window.__hyperframes.getVariables()) || {};
+    const raw = String(vars.saving == null ? "75" : vars.saving).trim().replace(/^~/, "").replace(/%$/, "");
+    const num = Number(raw);
+    const numEl = document.querySelector("#cost-num");
+    const unitEl = document.querySelector("#cost-unit");
+    const noteEl = document.querySelector("#cost-note");
+    if (vars.savingUnit) unitEl.textContent = vars.savingUnit;
+    if (vars.savingNote) noteEl.textContent = vars.savingNote;
+    unitEl.innerHTML = unitEl.textContent
+      .split(/\s+/)
+      .map((w) => "<span>" + w + "</span>")
+      .join(" ");
+
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo(
+      "#cost-big",
+      { scale: 1.18, opacity: 0, filter: "blur(14px)" },
+      { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "expo.out" },
+      0.08,
+    );
+    if (raw !== "" && Number.isFinite(num)) {
+      const decimals = (raw.split(".")[1] || "").length;
+      const counter = { v: 0 };
+      numEl.textContent = (0).toFixed(decimals);
+      tl.to(
+        counter,
+        { v: num, duration: 0.9, ease: "power2.out", onUpdate: () => (numEl.textContent = counter.v.toFixed(decimals)) },
+        0.12,
+      );
+    } else {
+      numEl.textContent = raw;
+    }
+    tl.fromTo(
+      "#cost-unit span",
+      { opacity: 0, filter: "blur(6px)" },
+      { opacity: 1, filter: "blur(0px)", duration: 0.14, ease: "power4.out", stagger: 0.08 },
+      0.62,
+    );
+    tl.fromTo("#cost-note", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 0.95);
+
+    // Exit: the copy blurs away; the blue ground stays and becomes the logo tile in the outro.
+    tl.to("#cost-stack", { opacity: 0, filter: "blur(10px)", duration: 0.2, ease: "power2.in" }, 2.76);
+
+    window.__timelines["cost"] = tl;
+  </script>
+</template>

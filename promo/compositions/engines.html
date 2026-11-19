@@ -1,0 +1,156 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      container-type: size;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      color: var(--ink);
+    }
+    #eng-stack {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    #eng-title {
+      font-size: 100px;
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+    }
+    #eng-title span {
+      display: inline-block;
+    }
+    #eng-slot-wrap {
+      position: relative;
+      margin-top: 26px;
+      width: 1000px;
+      height: 180px;
+    }
+    #eng-band {
+      position: absolute;
+      left: 170px;
+      right: 170px;
+      top: 96px;
+      height: 62px;
+      border-radius: 14px;
+      background: var(--gold);
+      transform-origin: 0% 50%;
+    }
+    #eng-slot {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #eng-list {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+    }
+    .eng-name {
+      height: 180px;
+      line-height: 180px;
+      font-size: 156px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: var(--blue-800);
+      white-space: nowrap;
+    }
+    #eng-sub {
+      text-wrap: balance;
+      margin-top: 40px;
+      font-size: 36px;
+      color: var(--slate);
+    }
+    #eng-iris {
+      position: absolute;
+      inset: 0;
+      background: var(--flood);
+    }
+    @container (max-aspect-ratio: 5/4) {
+      #eng-title {
+        font-size: 74px;
+      }
+      #eng-slot-wrap {
+        width: 900px;
+      }
+      #eng-band {
+        left: 120px;
+        right: 120px;
+      }
+      .eng-name {
+        font-size: 132px;
+      }
+      #eng-sub {
+        font-size: 30px;
+        max-width: 860px;
+        line-height: 1.35;
+      }
+    }
+  </style>
+  <div id="root" data-composition-id="engines">
+    <div id="eng-stack">
+      <div id="eng-title"><span>Bring</span> <span>your</span> <span>own</span> <span>model</span></div>
+      <div id="eng-slot-wrap">
+        <div id="eng-band"></div>
+        <div id="eng-slot" data-layout-allow-overflow>
+          <div id="eng-list">
+            <div class="eng-name">DeepSeek</div>
+            <div class="eng-name">Qwen</div>
+            <div class="eng-name">Ollama</div>
+            <div class="eng-name">vLLM</div>
+            <div class="eng-name">DeepL…</div>
+          </div>
+        </div>
+      </div>
+      <div id="eng-sub">Any OpenAI-compatible API, or DeepL.</div>
+    </div>
+    <div id="eng-iris"></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const STEP = 180;
+
+    tl.fromTo(
+      "#eng-title span",
+      { opacity: 0, filter: "blur(6px)" },
+      { opacity: 1, filter: "blur(0px)", duration: 0.14, ease: "power4.out", stagger: 0.07 },
+      0.05,
+    );
+    tl.fromTo("#eng-band", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power3.inOut" }, 0.35);
+    // Slot machine: each engine name rolls in from below.
+    tl.fromTo(
+      "#eng-list",
+      { y: STEP, filter: "blur(8px)" },
+      { y: 0, filter: "blur(0px)", duration: 0.3, ease: "expo.out" },
+      0.45,
+    );
+    // One roll every 0.44 s (written out so `hyperframes lint` can read the times).
+    const roll = (i) => [
+      "#eng-list",
+      { y: -STEP * (i - 1), filter: "blur(6px)" },
+      { y: -STEP * i, filter: "blur(0px)", duration: 0.2, ease: "power3.out", immediateRender: false },
+    ];
+    tl.fromTo(...roll(1), 0.89);
+    tl.fromTo(...roll(2), 1.33);
+    tl.fromTo(...roll(3), 1.77);
+    tl.fromTo(...roll(4), 2.21);
+    tl.fromTo("#eng-sub", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.22, ease: "power3.out" }, 0.8);
+
+    // Iris: the brand blue floods out from the engine name into the next scene.
+    tl.fromTo(
+      "#eng-iris",
+      { clipPath: "circle(0% at 50% 56%)" },
+      { clipPath: "circle(80% at 50% 56%)", duration: 0.38, ease: "power3.in" },
+      3.2,
+    );
+
+    window.__timelines["engines"] = tl;
+  </script>
+</template>

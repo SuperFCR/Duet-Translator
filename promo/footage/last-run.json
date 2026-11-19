@@ -1,0 +1,57 @@
+{
+  "01-open": {
+    "status": "简体中文 · 17/50 paragraphs translated · 2,537 chars sent",
+    "meter": "3.2k tokens<$0.001",
+    "duration": 7.033333333333333,
+    "toggleAt": 2.12,
+    "streamDoneAt": 5.64
+  },
+  "04-cache": {
+    "status": "简体中文 · 17/50 paragraphs translated · 0 chars sent",
+    "meter": "17 from cache",
+    "reopenToFilledMs": 360,
+    "meterBox": {
+      "x": 891.796875,
+      "y": 8,
+      "width": 99.109375,
+      "height": 22
+    },
+    "closeBox": {
+      "x": 1881.09375,
+      "y": 6,
+      "width": 28.90625,
+      "height": 26
+    },
+    "duration": 6,
+    "closeAt": 0.95,
+    "reopenAt": 2.26
+  },
+  "p1marks": {
+    "c01-start": 0.3,
+    "toggle": 2.421,
+    "stream-done": 5.939,
+    "c01-end": 7.339,
+    "c04-start": 7.9,
+    "close": 8.852,
+    "reopen": 10.16,
+    "reopen-filled": 10.52,
+    "c04-end": 14.535
+  },
+  "05-meter": {
+    "meter": "3.4k tokens17 from cache<$0.001",
+    "status": "简体中文 · 29/50 paragraphs translated · 2,472 chars sent"
+  },
+  "02-sync-scroll": {
+    "status": "简体中文 · 50/50 paragraphs translated · 0 chars sent",
+    "meter": "50 from cache",
+    "duration": 10.733333333333333,
+    "rightSideAt": 6.96
+  },
+  "03-hover": {
+    "status": "简体中文 · 50/50 paragraphs translated · 0 chars sent",
+    "duration": 7.866666666666666
+  },
+  "hero": {
+    "status": "简体中文 · 50/50 paragraphs translated · 0 chars sent"
+  }
+}

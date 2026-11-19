@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Islands That Build Themselves — The Tidewater Review</title>
+<style>
+  :root {
+    --ink: #1c1a17; --soft: #3f3a33; --muted: #776f64; --accent: #0f6f7c; --accent-2: #e07a5f;
+    --paper: #fbf9f4; --rule: #e6dfd2; --card: #fffefb;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--paper); }
+  body {
+    margin: 0; color: var(--ink);
+    font: 19px/1.78 "Noto Serif", "Noto Serif CJK SC", Georgia, serif;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  /* Chinese: no faux italics on CJK glyphs */
+  html:lang(zh) { font-synthesis-style: none; }
+
+  .masthead { border-bottom: 1px solid var(--rule); background: var(--paper); }
+  .masthead .inner { max-width: 880px; margin: 0 auto; padding: 20px 32px; display: flex; align-items: center; gap: 28px; }
+  .logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink);
+    font: 700 21px/1 "Noto Serif Display", "Noto Serif", "Noto Serif CJK SC", serif; letter-spacing: .01em; white-space: nowrap; }
+  .logo svg { width: 26px; height: 26px; flex: none; }
+  .masthead nav { display: flex; gap: 22px; margin-left: auto; }
+  .masthead nav a { font: 500 14px/1 Inter, "Noto Sans CJK SC", sans-serif; color: var(--muted); text-decoration: none; white-space: nowrap; }
+  .masthead .sub { font: 600 13px/1 Inter, "Noto Sans CJK SC", sans-serif; color: #fff; background: var(--ink); padding: 9px 14px;
+    border-radius: 999px; text-decoration: none; white-space: nowrap; }
+
+  article { max-width: 680px; margin: 0 auto; padding: 64px 28px 40px; }
+  .kicker { font: 600 12.5px/1 Inter, "Noto Sans CJK SC", sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin: 0; }
+  h1 { font: 700 54px/1.08 "Noto Serif Display", "Noto Serif", "Noto Serif CJK SC", serif; letter-spacing: -.012em; margin: 18px 0 20px; }
+  html:lang(zh) h1 { font-size: 50px; line-height: 1.22; letter-spacing: .02em; }
+  .dek { font-size: 22.5px; line-height: 1.55; color: var(--soft); font-style: italic; margin: 0 0 30px; }
+  .byline { display: flex; align-items: center; gap: 14px; padding: 16px 0; margin: 0 0 40px;
+    border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+    font: 14px/1.4 Inter, "Noto Sans CJK SC", sans-serif; color: var(--muted); }
+  .byline .avatar { width: 40px; height: 40px; border-radius: 50%; flex: none;
+    background: radial-gradient(circle at 35% 30%, #f6c9a8, #d9876a 60%, #a8553f); }
+  .byline b { color: var(--ink); font-weight: 600; }
+  .byline .dot { color: #c9bfb0; }
+
+  h2 { font: 700 30px/1.25 "Noto Serif Display", "Noto Serif", "Noto Serif CJK SC", serif; margin: 58px 0 16px; letter-spacing: -.005em; }
+  p { margin: 0 0 1.3em; }
+  a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+    text-decoration-color: rgba(15, 111, 124, .45); }
+  strong { font-weight: 700; color: #000; }
+
+  blockquote { margin: 42px 0; padding: 2px 0 2px 28px; border-left: 3px solid var(--accent-2);
+    font-size: 24px; line-height: 1.55; font-style: italic; color: #2b2722; }
+  blockquote p { margin: 0; }
+  blockquote cite { display: block; margin-top: 14px; font: normal 14px/1.4 Inter, "Noto Sans CJK SC", sans-serif; color: var(--muted); }
+
+  ul.needs { margin: 0 0 1.4em; padding: 0 0 0 1.2em; }
+  ul.needs li { margin: .4em 0; padding-left: .3em; }
+  ul.needs li::marker { color: var(--accent-2); }
+
+  figure { margin: 44px -36px 46px; }
+  .panels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 22px 22px 18px;
+    background: var(--card); border: 1px solid var(--rule); border-radius: 14px; box-shadow: 0 1px 0 rgba(0,0,0,.02), 0 12px 30px -18px rgba(60,40,20,.25); }
+  .panel svg { display: block; width: 100%; height: auto; border-radius: 8px; }
+  .panel .label { display: block; margin-top: 10px; font: 600 13.5px/1.3 Inter, "Noto Sans CJK SC", sans-serif; color: var(--soft); text-align: center; }
+  .panel .label .n { color: var(--accent-2); margin-right: 6px; }
+  figcaption { margin: 14px 36px 0; font: 14.5px/1.6 Inter, "Noto Sans CJK SC", sans-serif; color: var(--muted); }
+
+  .endmark { display: inline-block; width: 11px; height: 11px; margin-left: 6px; background: var(--accent-2); border-radius: 2px; transform: rotate(45deg) translateY(-2px); }
+  .bio { margin: 56px 0 0; padding-top: 22px; border-top: 1px solid var(--rule); font: 15px/1.6 Inter, "Noto Sans CJK SC", sans-serif; color: var(--muted); }
+  footer { max-width: 680px; margin: 0 auto; padding: 0 28px 80px; font: 13px/1.5 Inter, "Noto Sans CJK SC", sans-serif; color: #a59c8f; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="inner">
+    <a class="logo" href="#">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#0f6f7c"/><path d="M4 19c4-3 8-3 12 0s8 3 12 0v6a13 13 0 0 1-24 0z" fill="#9fd8d6"/><path d="M4 19c4-3 8-3 12 0s8 3 12 0" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="21" cy="11" r="3.2" fill="#f2b880"/></svg>
+      The Tidewater Review
+    </a>
+    <nav>
+      <a href="#">Oceans</a>
+      <a href="#">Climate</a>
+      <a href="#">Essays</a>
+      <a href="#">Archive</a>
+    </nav>
+    <a class="sub" href="#">Subscribe</a>
+  </div>
+</header>
+
+<article>
+  <p class="kicker">Oceans · Long read</p>
+  <h1>The Islands That Build Themselves</h1>
+  <p class="dek">Atolls look like accidents of scenery. They are, in fact, the slow work of corals, algae, storms and a great many parrotfish.</p>
+  <div class="byline">
+    <span class="avatar"></span>
+    <span>By <b>Mara Ellison</b></span><span class="dot">•</span><span>November 2026</span><span class="dot">•</span><span>14 min read</span>
+  </div>
+
+  <p>Fly over the central Pacific and the islands appear without warning: thin crescents of white sand and green palms, strung around lagoons so still and turquoise they look painted on. There is no mountain behind them, no river delta, no obvious reason for land to be there at all. The seafloor around them can be four or five kilometres down, yet here is a beach you can walk across in a few minutes.</p>
+
+  <p>These are reef islands, and almost everything about them is made by living things. The rock under your feet is the compacted skeletons of corals and algae. The sand is ground-up shell, urchin spine and coral that has passed through the gut of a fish. Even the shape of the island is set by the reef around it, which breaks the swell and decides where sediment can settle.</p>
+
+  <p>Understanding how such places form took more than a century, two drilling campaigns and one very patient naturalist. It also matters a great deal today, because the answer tells us whether these islands, home to more than half a million people, can keep pace with a rising sea.</p>
+
+  <h2>Darwin’s sinking mountains</h2>
+
+  <p>When <a href="https://en.wikipedia.org/wiki/Charles_Darwin">Charles Darwin</a> sailed into the Cocos (Keeling) Islands aboard HMS <em>Beagle</em> in April 1836, the leading explanation for atolls was that corals had colonised the rims of submerged volcanic craters. Darwin found that hard to believe. Craters do not come in the sizes and shapes he was seeing, and reef-building corals cannot live more than a few dozen metres below the surface, where sunlight fades.</p>
+
+  <p>His alternative was bold and, at the time, impossible to test. Start with a volcanic island ringed by a <em>fringing reef</em>. As the extinct volcano slowly sinks under its own weight, the corals keep growing upward toward the light. The reef becomes a <em>barrier reef</em>, separated from the shrinking island by a lagoon. When the last peak disappears, only the ring of reef remains: an atoll.</p>
+
+  <figure>
+    <div class="panels">
+      <div class="panel">
+        <svg viewBox="0 0 220 140" role="img" aria-label="">
+          <defs>
+            <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ad7e0"/><stop offset="1" stop-color="#1f6f8b"/></linearGradient>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdf3e4"/><stop offset="1" stop-color="#fbe9d3"/></linearGradient>
+            <linearGradient id="rock" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a6658"/><stop offset="1" stop-color="#4a3c34"/></linearGradient>
+          </defs>
+          <rect width="220" height="52" fill="url(#sky)"/>
+          <circle cx="182" cy="20" r="9" fill="#f6c27a"/>
+          <rect y="52" width="220" height="88" fill="url(#sea)"/>
+          <path d="M8 140 L70 66 Q92 38 104 26 Q110 20 116 26 Q128 38 150 66 L212 140 Z" fill="url(#rock)"/>
+          <path d="M98 34 Q110 18 122 34 Q114 30 110 32 Q104 30 98 34 Z" fill="#6f8f4e"/>
+          <path d="M66 52 Q72 47 80 50 L84 52 L78 62 L62 62 Z" fill="#ee8a68"/>
+          <path d="M154 52 Q148 47 140 50 L136 52 L142 62 L158 62 Z" fill="#ee8a68"/>
+          <path d="M0 52 H220" stroke="#ffffff" stroke-width="1.5" opacity=".8"/>
+        </svg>
+        <span class="label"><span class="n">1</span>Fringing reef</span>
+      </div>
+      <div class="panel">
+        <svg viewBox="0 0 220 140" role="img" aria-label="">
+          <rect width="220" height="52" fill="url(#sky)"/>
+          <circle cx="182" cy="20" r="9" fill="#f6c27a"/>
+          <rect y="52" width="220" height="88" fill="url(#sea)"/>
+          <path d="M28 52 L46 52 L58 74 L64 140 L18 140 Z" fill="#e8d9b8"/>
+          <path d="M192 52 L174 52 L162 74 L156 140 L202 140 Z" fill="#e8d9b8"/>
+          <path d="M8 140 L80 84 Q100 54 110 42 Q116 36 122 44 Q132 58 142 84 L212 140 Z" fill="url(#rock)"/>
+          <path d="M101 50 Q112 34 124 50 Q116 46 112 48 Q106 46 101 50 Z" fill="#6f8f4e"/>
+          <path d="M24 52 Q34 45 48 50 L50 56 L26 58 Z" fill="#ee8a68"/>
+          <path d="M196 52 Q186 45 172 50 L170 56 L194 58 Z" fill="#ee8a68"/>
+          <path d="M0 52 H220" stroke="#ffffff" stroke-width="1.5" opacity=".8"/>
+        </svg>
+        <span class="label"><span class="n">2</span>Barrier reef</span>
+      </div>
+      <div class="panel">
+        <svg viewBox="0 0 220 140" role="img" aria-label="">
+          <rect width="220" height="52" fill="url(#sky)"/>
+          <circle cx="182" cy="20" r="9" fill="#f6c27a"/>
+          <rect y="52" width="220" height="88" fill="url(#sea)"/>
+          <path d="M14 52 L52 52 Q70 66 110 68 Q150 66 168 52 L206 52 L214 140 L6 140 Z" fill="#e8d9b8"/>
+          <path d="M30 140 L92 108 Q110 96 128 108 L190 140 Z" fill="url(#rock)"/>
+          <path d="M12 52 Q28 42 50 48 L54 54 L14 56 Z" fill="#ee8a68"/>
+          <path d="M208 52 Q192 42 170 48 L166 54 L206 56 Z" fill="#ee8a68"/>
+          <path d="M22 50 Q32 43 44 49 Z" fill="#f4e6c4"/>
+          <path d="M33 47 Q34 38 37 32" stroke="#6b4f35" stroke-width="1.6" fill="none"/>
+          <path d="M37 32 q-7 -2 -11 3 M37 32 q6 -4 11 0 M37 32 q-2 -6 -7 -8 M37 32 q4 -6 9 -6" stroke="#4f7a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M176 49 Q188 43 198 50 Z" fill="#f4e6c4"/>
+          <path d="M187 47 Q186 40 183 35" stroke="#6b4f35" stroke-width="1.6" fill="none"/>
+          <path d="M183 35 q-7 -2 -11 3 M183 35 q6 -4 11 0 M183 35 q-2 -6 -7 -8 M183 35 q4 -6 9 -6" stroke="#4f7a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M0 52 H220" stroke="#ffffff" stroke-width="1.5" opacity=".8"/>
+        </svg>
+        <span class="label"><span class="n">3</span>Atoll</span>
+      </div>
+    </div>
+    <figcaption>Fig. 1 — Darwin’s sequence. As a volcanic island subsides, its reef keeps growing toward the light, turning a fringing reef into a barrier reef and, finally, into an atoll around an empty lagoon.</figcaption>
+  </figure>
+
+  <p>Darwin published the idea in 1842, in <em>The Structure and Distribution of Coral Reefs</em>. It was elegant and it explained the geography, but it made a specific prediction that nobody could check: if he was right, a hole drilled through an atoll should pass through a thick cap of reef limestone before striking volcanic rock.</p>
+
+  <blockquote>
+    <p>“We feel a surprise when travellers tell us of the vast dimensions of the Pyramids and other great ruins, but how utterly insignificant are the greatest of these, when compared to these mountains of stone accumulated by the agency of various minute and tender animals!”</p>
+    <cite>Charles Darwin, Journal of Researches</cite>
+  </blockquote>
+
+  <p>The Royal Society tried in the 1890s, sending expeditions to Funafuti, in what is now Tuvalu. The deepest bore reached about 340 metres and brought up nothing but coral rock. It was suggestive, but not conclusive. The question stayed open until 1952, when geologists working on <a href="https://en.wikipedia.org/wiki/Enewetak_Atoll">Enewetak Atoll</a> drilled two deep holes. Both passed through <strong>more than 1,200 metres of limestone</strong> before hitting basalt. Darwin had been right, more than a century after he said it.</p>
+
+  <h2>A living limestone factory</h2>
+
+  <p>The engine behind all of this is a partnership. Reef-building corals are small animals, polyps a few millimetres across, but inside their tissues live single-celled algae that photosynthesise and hand most of the sugar they make to their host. That energy lets the coral pull calcium and carbonate out of seawater and lay down a skeleton of aragonite, the same mineral as mother-of-pearl.</p>
+
+  <p>Each polyp adds only a thin layer at a time. A massive brain coral may grow a centimetre a year; branching corals can manage ten times that. Spread across a reef, though, the numbers add up. A healthy reef can produce several kilograms of limestone per square metre every year, enough to keep pace with all but the fastest changes in sea level.</p>
+
+  <p>Corals do not work alone. Crustose coralline algae, pink and rock-hard crusts that look more like paint than plants, grow over loose fragments and cement them into a solid framework. On the windward edge of many Pacific atolls they build a raised algal ridge that takes the full force of the surf. Without that glue, a reef would be a heap of rubble.</p>
+
+  <p>A reef that can build an island needs a few things at once:</p>
+  <ul class="needs">
+    <li>A shallow reef flat, close enough to the surface to trap sediment</li>
+    <li>A steady supply of sand and gravel from the living reef</li>
+    <li>Storms strong enough to move that material, but rare enough to let it settle</li>
+    <li>Time: most of today’s reef islands are only a few thousand years old</li>
+  </ul>
+
+  <h2>Where the sand comes from</h2>
+
+  <p>Stand on an atoll beach and pick up a handful of sand. Under a hand lens it is a museum of the reef: broken coral branches, fragments of mollusc shell, the spines of sea urchins, the tiny chambered shells of foraminifera, and flakes of the green alga <em>Halimeda</em>, which grows as chains of calcified discs.</p>
+
+  <p>A surprising amount of it has been eaten. Parrotfish graze on algae growing over dead coral, scraping the surface with fused, beak-like teeth and grinding what they bite in their throats. What they cannot digest they excrete as fine white sediment. A single large parrotfish can turn out <strong>hundreds of kilograms of sand a year</strong>.</p>
+
+  <p>Researchers who trace sand back to its sources find that the mix varies from island to island. In parts of the Maldives, parrotfish dominate; elsewhere, foraminifera or <em>Halimeda</em> do much of the work. But the principle holds everywhere: the beach is only as healthy as the reef that feeds it. When corals die and fish disappear, the supply line slowly runs dry.</p>
+
+  <h2>Built by storms</h2>
+
+  <p>Sand alone does not make dry land. On a calm day, waves move sediment back and forth across the reef flat without lifting it above the tide. What finally builds an island is violence: cyclones and large swells that tear blocks of coral from the reef edge and hurl gravel and boulders onto the flat.</p>
+
+  <p>Those storm deposits form ridges of rubble, and the ridges become anchors. Finer sand piles up in their lee, plants take hold, and roots and fallen leaves begin to bind the surface. Over centuries a low island takes shape, rarely more than three or four metres above high tide. Across Polynesia these islets are called <em>motu</em>.</p>
+
+  <p>Most of today’s reef islands are surprisingly young. Across much of the Pacific, sea level stood a metre or two higher than it does now some four to five thousand years ago, then slowly fell. As it dropped, reef flats that had been under water came within reach of waves and storms, and islands began to accumulate on top of them.</p>
+
+  <h2>Islands that move</h2>
+
+  <p>Because they are made of loose sediment, reef islands are not fixed in place. They behave more like sandbars than like mountains. Shorelines advance in one season and retreat in the next; sand migrates from the ocean side to the lagoon side; whole islets can shift tens of metres in a decade.</p>
+
+  <p>That mobility is easy to mistake for decline. A photograph of a single eroding beach makes a dramatic image, but the sand has often moved somewhere else rather than vanished. When geographers compared historical aerial photographs with recent satellite imagery, the picture was more mixed than many had expected.</p>
+
+  <p><a href="https://www.nature.com/articles/s41467-018-02954-1">A 2018 study</a> of 101 islands in Tuvalu found that nearly three-quarters had grown in area over four decades, even as the local sea level rose at about twice the global average. Total land area across the country increased by almost three percent. Some islands shrank, a few disappeared, and others appeared or merged.</p>
+
+  <p>None of this means the islands are safe. It means they are alive, in a geological sense: they respond to waves, storms and sediment supply in ways that a simple flooding model, which treats them like blocks of concrete, does not capture.</p>
+
+  <h2>An uncertain tide</h2>
+
+  <p>The same processes that built reef islands could let some of them keep up with a rising ocean, but only if the reef keeps producing sediment. That is where the real worry lies. Marine heatwaves now trigger mass coral bleaching every few years, and a bleached reef that dies stops making new limestone and sand.</p>
+
+  <p>There is also a human dimension. Seawalls built to protect a village can lock an island in place, stopping it from adjusting to storms and sometimes starving neighbouring beaches of sand. Engineers in the Maldives and Kiribati are experimenting with approaches that work with sediment rather than against it, from beach nourishment to raising land on purpose.</p>
+
+  <p>For the people who live on atolls, none of this is abstract. Freshwater lenses beneath the islands turn brackish after storm surges, and every reef that dies takes food off the table. The future of these islands depends on emissions decided far away, and on how well the reefs that make them are looked after.</p>
+
+  <p>Darwin showed that an atoll marks the grave of a vanished mountain. It is also something more hopeful: proof that a reef, given time and a little calm water, can raise solid ground from the open ocean. Whether it gets that time is now partly up to us.<span class="endmark"></span></p>
+
+  <p class="bio">Mara Ellison writes about oceans and coastal science. This essay is part of our series on how landscapes are made.</p>
+</article>
+<footer>© 2026 The Tidewater Review</footer>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      container-type: size;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      color: var(--ink);
+    }
+    #outro-stack {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    #outro-logo {
+      width: 220px;
+      height: 220px;
+      display: block;
+      overflow: visible;
+    }
+    #outro-word {
+      margin-top: 40px;
+      font-size: 120px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      white-space: nowrap;
+    }
+    #outro-tag {
+      margin-top: 34px;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      white-space: nowrap;
+    }
+    #outro-oss {
+      height: 54px;
+      padding: 0 24px;
+      border-radius: 27px;
+      background: var(--gold);
+      color: var(--ink);
+      font-size: 28px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+    }
+    #outro-url {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 36px;
+      color: var(--slate);
+    }
+    #outro-flood {
+      position: absolute;
+      inset: 0;
+      background: var(--flood);
+    }
+    @container (max-aspect-ratio: 5/4) {
+      #outro-word {
+        font-size: 104px;
+      }
+      #outro-tag {
+        flex-direction: column;
+        gap: 18px;
+      }
+      #outro-url {
+        font-size: 32px;
+      }
+    }
+  </style>
+  <div id="root" data-composition-id="outro">
+    <div id="outro-stack">
+      <!-- extension/icons/logo.svg, inlined so its parts can animate. -->
+      <svg id="outro-logo" viewBox="0 0 128 128" aria-label="Duet-Translator logo">
+        <defs>
+          <linearGradient id="outro-bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#3b82f6" />
+            <stop offset="1" stop-color="#1e40af" />
+          </linearGradient>
+        </defs>
+        <rect id="outro-tile" x="4" y="4" width="120" height="120" rx="28" fill="url(#outro-bg)" />
+        <g id="outro-pages">
+          <rect x="20" y="22" width="41" height="84" rx="8" fill="#ffffff" />
+          <rect x="67" y="22" width="41" height="84" rx="8" fill="#dbeafe" />
+          <g fill="#94a3b8">
+            <rect x="28" y="33" width="26" height="5" rx="2.5" />
+            <rect x="28" y="43" width="19" height="5" rx="2.5" />
+            <rect x="28" y="83" width="26" height="5" rx="2.5" />
+            <rect x="28" y="93" width="16" height="5" rx="2.5" />
+          </g>
+          <g fill="#3b82f6">
+            <rect x="75" y="33" width="21" height="5" rx="2.5" />
+            <rect x="75" y="43" width="26" height="5" rx="2.5" />
+            <rect x="75" y="83" width="18" height="5" rx="2.5" />
+            <rect x="75" y="93" width="24" height="5" rx="2.5" />
+          </g>
+        </g>
+        <g id="outro-band">
+          <rect x="13" y="56" width="102" height="18" rx="6" fill="#fbbf24" />
+          <g fill="#92400e">
+            <rect x="28" y="62.5" width="24" height="5" rx="2.5" />
+            <rect x="75" y="62.5" width="20" height="5" rx="2.5" />
+          </g>
+        </g>
+      </svg>
+      <div id="outro-word">Duet-Translator</div>
+      <div id="outro-tag">
+        <span id="outro-oss">Open source</span>
+        <span id="outro-url">github.com/SuperFCR/Duet-Translator</span>
+      </div>
+    </div>
+    <div id="outro-flood"></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    // The blue ground of the cost beat shrinks into the logo tile.
+    tl.fromTo("#outro-flood", { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power1.out" }, 0);
+    // Scale 11 still covers the whole frame (16:9 and square), so the move starts on the first frame.
+    tl.fromTo("#outro-logo", { scale: 11 }, { scale: 1, duration: 0.75, ease: "power2.inOut" }, 0);
+    tl.fromTo(
+      "#outro-pages",
+      { opacity: 0, scale: 0.8, transformOrigin: "50% 50%" },
+      { opacity: 1, scale: 1, duration: 0.35, ease: "expo.out" },
+      0.55,
+    );
+    tl.fromTo("#outro-band", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.35, ease: "power3.inOut" }, 0.72);
+
+    tl.fromTo(
+      "#outro-word",
+      { clipPath: "inset(0% 100% 0% 0%)" },
+      { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5, ease: "power3.out" },
+      0.9,
+    );
+    tl.fromTo("#outro-oss", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.6)" }, 1.25);
+    tl.fromTo("#outro-url", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.22, ease: "power3.out" }, 1.38);
+
+    window.__timelines["outro"] = tl;
+  </script>
+</template>

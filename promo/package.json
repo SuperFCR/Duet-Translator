@@ -1,0 +1,19 @@
+{
+  "name": "duet-translator-promo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Promo video for Duet-Translator, built with HyperFrames",
+  "type": "module",
+  "devDependencies": {
+    "hyperframes": "0.9.70"
+  },
+  "scripts": {
+    "timeline": "node scripts/timeline.mjs",
+    "lint": "node scripts/timeline.mjs && scripts/hf.sh lint",
+    "check": "node scripts/timeline.mjs && scripts/hf.sh check",
+    "preview": "node scripts/timeline.mjs && scripts/hf.sh preview",
+    "review": "node scripts/timeline.mjs && scripts/hf.sh snapshot --review",
+    "build": "scripts/build.sh",
+    "build:draft": "scripts/build.sh draft"
+  }
+}

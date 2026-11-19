@@ -1,0 +1,225 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      container-type: size;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      color: var(--ink);
+    }
+    #sync-stage {
+      position: absolute;
+      inset: 0;
+    }
+    #sync-text {
+      position: absolute;
+      left: 160px;
+      top: 0;
+      bottom: 0;
+      width: 920px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .sync-title {
+      font-size: 94px;
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      line-height: 1.06;
+    }
+    .sync-title span {
+      display: inline-block;
+    }
+    #sync-t2 {
+      color: var(--blue-800);
+    }
+    #sync-sub {
+      text-wrap: balance;
+      margin-top: 34px;
+      font-size: 36px;
+      line-height: 1.35;
+      color: var(--slate);
+      max-width: 700px;
+    }
+    #sync-diagram {
+      position: absolute;
+      right: 160px;
+      top: 180px;
+      width: 640px;
+      height: 720px;
+    }
+    .sync-page {
+      position: absolute;
+      top: 0;
+      width: 308px;
+      height: 100%;
+      border-radius: 26px;
+      overflow: hidden;
+      box-shadow: 0 30px 70px rgba(30, 64, 175, 0.16), 0 0 0 1px rgba(15, 23, 42, 0.06);
+    }
+    #sync-page-l {
+      left: 0;
+      background: var(--paper);
+    }
+    #sync-page-r {
+      left: 332px;
+      background: var(--sky);
+    }
+    #sync-band {
+      position: absolute;
+      left: -24px;
+      right: -24px;
+      top: 172px;
+      height: 136px;
+      border-radius: 18px;
+      background: var(--gold);
+      box-shadow: 0 12px 30px rgba(251, 191, 36, 0.35);
+      z-index: 1;
+    }
+    .sync-col {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 1px;
+      z-index: 2;
+    }
+    .sync-bar {
+      position: absolute;
+      left: 30px;
+      height: 14px;
+      border-radius: 7px;
+    }
+    #sync-col-l .sync-bar {
+      background: var(--muted);
+    }
+    #sync-col-r .sync-bar {
+      background: var(--blue);
+    }
+    #sync-col-l .sync-bar.is-on,
+    #sync-col-r .sync-bar.is-on {
+      background: var(--brown);
+    }
+    @container (max-aspect-ratio: 5/4) {
+      #sync-text {
+        left: 90px;
+        right: 90px;
+        top: 80px;
+        bottom: auto;
+        width: auto;
+        align-items: center;
+        text-align: center;
+      }
+      .sync-title {
+        font-size: 80px;
+      }
+      #sync-sub {
+        margin-top: 22px;
+        font-size: 30px;
+        max-width: 860px;
+      }
+      #sync-diagram {
+        right: auto;
+        left: 220px;
+        top: 455px;
+        height: 560px;
+      }
+    }
+  </style>
+  <div id="root" data-composition-id="sync">
+    <div id="sync-stage">
+      <div id="sync-text">
+        <div class="sync-title" id="sync-t1"><span>Paragraph-aligned</span></div>
+        <div class="sync-title" id="sync-t2"><span>sync</span> <span>scrolling</span></div>
+        <div id="sync-sub">Scroll either side: both stay on the same paragraph.</div>
+      </div>
+      <div id="sync-diagram" data-layout-ignore>
+        <div class="sync-page" id="sync-page-l"><div class="sync-col" id="sync-col-l"></div></div>
+        <div id="sync-band"></div>
+        <div class="sync-page" id="sync-page-r"><div class="sync-col" id="sync-col-r"></div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Two pages whose paragraphs have different heights (a translation is longer or shorter than
+    // its source). Both scroll positions are driven by one reading position p, interpolated
+    // paragraph by paragraph, so the paragraph at the gold focus band always matches on both sides.
+    const LINES_L = [3, 4, 2, 3, 4, 3, 2, 4, 3, 3, 2, 4];
+    const LINES_R = [4, 3, 3, 2, 3, 4, 3, 3, 2, 4, 3, 3];
+    const WIDTHS = [86, 78, 90, 72, 82, 88, 76, 84];
+    const LINE = 28;
+    const BAR = 14;
+    const GAP = 38;
+    const FOCUS = 240;
+
+    function build(colSel, counts, seed) {
+      const col = document.querySelector(colSel);
+      const centers = [];
+      const bars = [];
+      let y = 0;
+      counts.forEach((n, i) => {
+        const top = y;
+        for (let j = 0; j < n; j++) {
+          const bar = document.createElement("div");
+          bar.className = "sync-bar";
+          bar.dataset.p = String(i);
+          const w = WIDTHS[(i * 5 + j * 3 + seed) % WIDTHS.length];
+          bar.style.top = y + "px";
+          bar.style.width = (j === n - 1 && n > 1 ? Math.round(w * 0.55) : w) * 2.48 + "px";
+          col.appendChild(bar);
+          bars.push(bar);
+          y += LINE;
+        }
+        const h = n * LINE - (LINE - BAR);
+        centers.push(top + h / 2);
+        y = top + h + GAP;
+      });
+      return { centers, bars };
+    }
+
+    const left = build("#sync-col-l", LINES_L, 0);
+    const right = build("#sync-col-r", LINES_R, 3);
+    const allBars = left.bars.concat(right.bars);
+    const read = { p: 0 };
+
+    function at(centers, p) {
+      const i = Math.max(0, Math.min(Math.floor(p), centers.length - 2));
+      const f = p - i;
+      return FOCUS - (centers[i] + (centers[i + 1] - centers[i]) * f);
+    }
+    function apply() {
+      gsap.set("#sync-col-l", { y: at(left.centers, read.p) });
+      gsap.set("#sync-col-r", { y: at(right.centers, read.p) });
+      const active = String(Math.round(read.p));
+      allBars.forEach((b) => b.classList.toggle("is-on", b.dataset.p === active));
+    }
+    apply();
+
+    const tl = gsap.timeline({ paused: true });
+
+    tl.fromTo(
+      "#sync-diagram",
+      { scale: 0.86, opacity: 0, filter: "blur(8px)" },
+      { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" },
+      0,
+    );
+    tl.fromTo(
+      ".sync-title span",
+      { opacity: 0.1 },
+      { opacity: 1, duration: 0.14, ease: "power2.out", stagger: 0.09 },
+      0.15,
+    );
+    tl.fromTo("#sync-sub", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power3.out" }, 0.45);
+
+    // Reading position: scroll, stop, scroll further. Each side moves a different distance.
+    tl.to(read, { p: 1, duration: 0.7, ease: "power2.inOut", onUpdate: apply }, 0.45);
+    tl.to(read, { p: 3, duration: 1.0, ease: "power2.inOut", onUpdate: apply }, 1.45);
+    tl.to(read, { p: 4, duration: 0.55, ease: "power2.inOut", onUpdate: apply }, 2.65);
+
+    // Exit: whip left.
+    tl.to("#sync-stage", { x: -280, opacity: 0, filter: "blur(14px)", duration: 0.28, ease: "power3.in" }, 3.3);
+
+    window.__timelines["sync"] = tl;
+  </script>
+</template>
