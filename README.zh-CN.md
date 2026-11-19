@@ -16,7 +16,7 @@ Duet-Translator 是一个 Edge / Chrome 扩展：左边原网页，右边译文�
 - **按段落对齐的同步滚动**：滚任意一侧，另一侧跟随；正在读的那一段两侧对齐，并且同时到顶、同时到底。即使译文比原文长很多或短很多也一样。
 - **读到哪翻到哪，按需付费**：只翻可视区域（加半屏余量）；滚动中不发请求；已划走的在途请求会被取消；重复的段落只发一次。
 - **缓存优先**：看过的译文存在本机，滚动中也能立刻显示；提示词按服务端前缀缓存的规则排布（DeepSeek、OpenAI 等），大部分指令按缓存价计费。顶栏绿色徽章显示本页 token、缓存命中和估算费用。
-- **流式显示**：翻好一段显示一段；还在翻的段落会轻微"呼吸"，一眼能看出正在工作。
+- **流式显示**：长段落边生成边显示，不用等整段翻完；快速跳来跳去时，停下的位置优先翻译，不会排在已经离开的地方后面。
 - **保留格式**：链接、粗体/斜体、行内代码、引用角标、图片都保留；代码块不翻译。
 - **引擎自选**：任何 OpenAI 兼容接口（vLLM、SGLang、Ollama、LM Studio、llama.cpp、DeepSeek、OpenRouter、通义 DashScope…）或 DeepL。
 - **悬停对照**：鼠标停在一段上，另一侧对应段落同时高亮。
@@ -127,6 +127,7 @@ npx playwright install chromium   # 全新 Linux 环境加 --with-deps
 npm run test:unit                 # 同步算法单测（node:test）
 npm run test:options              # 设置页与弹窗
 npm run test:cache                # 缓存淘汰、去重、用量统计、参数回退
+npm run test:preview              # 长段落边生成边显示；中途取消的段落恢复原文
 npm run test:e2e                  # 在 Chromium 中加载扩展，检查对齐、翻译、费用控制
 npm run demo                      # 本地演示页 http://127.0.0.1:8787/article.html
 node e2e/compat.mjs               # 用离线 Mock 引擎巡检真实网站兼容性（结果见 docs/COMPAT.md）

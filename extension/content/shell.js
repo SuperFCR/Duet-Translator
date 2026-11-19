@@ -314,7 +314,7 @@
       this.anchors[from] = d.anchors;
       this.state[from] = d.s;
       this.rebuildMapper();
-      this.syncFollower();
+      this.syncFollower('layout');
     }
 
     rebuildMapper() {
@@ -335,11 +335,12 @@
         this.driver = from;
         return this.syncFollower();
       }
-      if (d.cause === 'layout') return this.syncFollower();
+      if (d.cause === 'layout') return this.syncFollower('layout');
       // 'prog'：自己设置的位置，忽略
     }
 
-    syncFollower() {
+    /** why：'move' = 驱动方在动（读者在移动）；'layout' = 只是排版变了、把跟随方拉回对齐（读者没动） */
+    syncFollower(why = 'move') {
       if (!this.sync || !this.mapper) return;
       const D = this.driver, F = other(D);
       const sd = this.state[D], sf = this.state[F];
@@ -348,7 +349,7 @@
       const t = S.followerScrollTop(sd, sf, map);
       if (Math.abs(t - sf.t) < 0.5) return;
       sf.t = t;
-      this.send(F, 'scrollTo', { t });
+      this.send(F, 'scrollTo', { t, why });
     }
 
     onStatus(d) {

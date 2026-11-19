@@ -131,10 +131,17 @@ async function translate(msg, sender) {
   if (ac) aborts.set(msg.reqId, ac);
   // 流式：每翻好一段就立刻推给发起请求的窗格（不等整批完成）
   const tabId = sender && sender.tab && sender.tab.id;
-  const partial = msg.reqId && tabId != null && sender.frameId != null
-    ? (i, text) => chrome.tabs.sendMessage(tabId, { type: 'translate:partial', reqId: msg.reqId, i, text }, { frameId: sender.frameId }).catch(() => {})
-    : null;
-  try { return await translateInner(msg, ac && ac.signal, partial); } finally { if (ac) aborts.delete(msg.reqId); }
+  const send = (m) => chrome.tabs.sendMessage(tabId, Object.assign({ type: 'translate:partial', reqId: msg.reqId }, m), { frameId: sender.frameId }).catch(() => {});
+  const partial = msg.reqId && tabId != null && sender.frameId != null ? (i, text) => send({ i, text }) : null;
+  // 段内预览：某段还在生成时，把目前为止的译文推过去（每段最多 150ms 一次），长段落不用干等
+  const lastPrev = new Map();
+  const preview = partial ? (i, text) => {
+    const t = Date.now();
+    if (t - (lastPrev.get(i) || 0) < 150) return;
+    lastPrev.set(i, t);
+    send({ i, text, preview: true });
+  } : null;
+  try { return await translateInner(msg, ac && ac.signal, partial, preview); } finally { if (ac) aborts.delete(msg.reqId); }
 }
 
 /** 把常见的服务端报错翻成能照着改的提示（原始信息附在后面便于排查） */
@@ -157,7 +164,7 @@ function noKeyError() {
   return e;
 }
 
-async function translateInner(msg, signal, partial) {
+async function translateInner(msg, signal, partial, preview) {
   const settings = await PT.loadSettings();
   const cfg = msg.cfg || (settings.providers || []).find((p) => p.id === settings.activeProviderId);
   if (!cfg) throw new Error(PT.t('err.noProvider'));
@@ -168,7 +175,7 @@ async function translateInner(msg, signal, partial) {
   const results = new Array(segs.length);
   if (!msg.cacheOnly && PT.needsKey(cfg) && !PT.hasKey(cfg)) throw noKeyError();   // 不发请求，直接提示
   try {
-    return await translateCore(msg, cfg, impl, ctx, segs, results, signal, partial);
+    return await translateCore(msg, cfg, impl, ctx, segs, results, signal, partial, preview);
   } catch (e) {
     throw friendlyError(e, cfg);
   }
@@ -227,7 +234,7 @@ async function flushUsage() {
   await chrome.storage.local.set({ usage });
 }
 
-async function translateCore(msg, cfg, impl, ctx, segs, results, signal, partial) {
+async function translateCore(msg, cfg, impl, ctx, segs, results, signal, partial, preview) {
   const useCache = cfg.type !== 'mock' && !msg.noCache;
   const ns = cacheNs(cfg, ctx);
   const host = hostOf(ctx.page && ctx.page.url), page = pageOf(ctx.page && ctx.page.url);
@@ -280,7 +287,10 @@ async function translateCore(msg, cfg, impl, ctx, segs, results, signal, partial
     await Promise.all(chunk(lead, segs, cfg).map((ch) => withSem(sem, async () => {
       if (signal && signal.aborted) throw new Error('cancelled');
       sentChars += ch.reduce((n, i) => n + segs[i].length, 0);
-      const cctx = partial ? Object.assign({}, ctx, { onItem: (j, text) => { if (ch[j] != null) fill(byLead.get(ch[j])[1], text, false); } }) : ctx;
+      const cctx = partial ? Object.assign({}, ctx, {
+        onItem: (j, text) => { if (ch[j] != null) fill(byLead.get(ch[j])[1], text, false); },
+        onPartial: preview ? (j, text) => { if (ch[j] != null) for (const i of byLead.get(ch[j])[1]) preview(i, text); } : null,
+      }) : ctx;
       const out = await impl.translate(ch.map((i) => segs[i]), cfg, cctx);
       if (!Array.isArray(out) || out.length !== ch.length) throw new Error(PT.t('err.count'));
       const okK = [], okV = [];

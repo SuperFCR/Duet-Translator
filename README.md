@@ -16,7 +16,7 @@ Duet-Translator is an Edge / Chrome extension that shows a web page and its tran
 - **Paragraph-aligned scrolling.** Scroll either side and the other follows; the paragraph you are reading lines up on both sides, and both reach the top and bottom together, even when the translation is much longer or shorter than the original.
 - **Pay only for what you read.** Only the visible area (plus half a screen) is translated. Nothing is requested while you scroll, requests you scrolled away from are cancelled, and duplicate paragraphs are sent once.
 - **Cache-first.** Everything you have read is kept locally and shown instantly, even while you scroll; the prompt is laid out so providers with prefix caching (DeepSeek, OpenAI…) bill most of the instructions at the cached rate. A green meter shows this page's tokens, cache hits and estimated cost.
-- **Streaming.** Each paragraph appears as soon as it is translated, and paragraphs still in progress gently pulse, so you always know it is working.
+- **Streaming.** Long paragraphs fill in word by word as they are generated, and jumping around never leaves the spot you land on waiting behind requests for places you have already left.
 - **Formatting preserved.** Links, bold/italic, inline code, citation markers and images survive translation; code blocks are left untouched.
 - **Bring your own engine.** Any OpenAI-compatible endpoint (vLLM, SGLang, Ollama, LM Studio, llama.cpp, DeepSeek, OpenRouter, Qwen/DashScope…) or DeepL.
 - **Hover to compare.** Hovering a paragraph highlights its counterpart on the other side.
@@ -128,6 +128,7 @@ npm run test:unit                 # scroll-sync math (node:test)
 npm run test:options              # settings page and popup
 npm run test:e2e                  # loads the extension in Chromium and checks alignment, translation, cost control
 npm run test:cache                # cache eviction, dedup, usage accounting, parameter fallback
+npm run test:preview              # long paragraphs fill in while generating; cancelled ones revert to the original
 node bench/bench.mjs              # cost / latency benchmark against a simulated LLM (see test/bench/README.md)
 npm run demo                      # local demo page at http://127.0.0.1:8787/article.html
 node e2e/compat.mjs               # real-site compatibility sweep with the offline Mock engine (see docs/COMPAT.md)

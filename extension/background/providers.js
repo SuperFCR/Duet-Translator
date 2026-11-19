@@ -275,7 +275,16 @@
    * 增量解析模型流式输出的 JSON 字符串数组：每闭合一个顶层字符串元素就回调 onItem(k, value)。
    * 跳过 <think>…</think> 与代码块前缀；元素不是字符串（如对象）时不回调，交给最终整体解析。
    */
-  function arrayStreamParser(onItem, max) {
+  /** 解码一个还没闭合的 JSON 字符串前缀（去掉末尾不完整的转义），失败返回 null */
+  function decodePartial(raw) {
+    const body = raw.replace(/\\u[0-9a-fA-F]{0,3}$/, '').replace(/(^|[^\\])(\\\\)*\\$/, (m) => m.slice(0, -1));
+    try { return JSON.parse(body + '"'); } catch (_) { return null; }
+  }
+
+  /**
+   * onPartial（可选）：某个元素还在生成时，回调它目前为止的文字 —— 长段落不用等整段生成完才显示。
+   */
+  function arrayStreamParser(onItem, max, onPartial) {
     let text = '', pos = 0, started = false, depth = 0, inStr = false, esc = false, strStart = 0, k = 0, done = false;
     function findStart() {
       let from = 0;
@@ -311,32 +320,58 @@
         else if (c === ']' || c === '}') { depth--; if (depth === 0) done = true; }
       }
     }
-    return { push(piece) { text += piece; if (!done) scan(); } };
+    return {
+      push(piece) {
+        text += piece;
+        if (done) return;
+        scan();
+        if (onPartial && inStr && depth === 1 && k < max) {
+          const v = decodePartial(text.slice(strStart, pos));
+          if (v) onPartial(k, v);
+        }
+      },
+    };
+  }
+
+  /** 单段（纯文本）模式的流式预览：跳过还没结束的 <think> 与代码块围栏 */
+  function textPreview(acc) {
+    let t = acc;
+    if (/<think>/i.test(t)) { const i = t.search(/<\/think>/i); if (i < 0) return ''; t = t.slice(i + 8); }
+    return t.replace(/^\s*```[a-zA-Z]*\s*\n?/, '').trim();
   }
 
   async function openaiTranslate(segments, cfg, ctx) {
     const onItem = typeof ctx.onItem === 'function' ? ctx.onItem : null;
+    const onPartial = typeof ctx.onPartial === 'function' ? ctx.onPartial : null;
     if (segments.length === 1) {
-      const out = cleanLLM(await openaiCall(cfg, ctx, sysPrompt(cfg, ctx, false), segments[0], null));
+      // 单段也走流式：长段落边生成边显示（以前单段是非流式，整段生成完才出现，长段落要等 4～5 秒）
+      const mk = onPartial ? () => { let acc = ''; return (piece) => { acc += piece; const v = textPreview(acc); if (v) onPartial(0, v); }; } : null;
+      const out = cleanLLM(await openaiCall(cfg, ctx, sysPrompt(cfg, ctx, false), segments[0], mk));
       return [out];
     }
     const n = segments.length;
     // 放不进上下文窗口：先拆成两半（各自再检查），不发注定失败的请求
     if (ctxBudget(cfg) && needTokens(sysPrompt(cfg, ctx, true), JSON.stringify(segments)) > ctxBudget(cfg)) {
       const mid = Math.ceil(n / 2);
-      const sub = (off) => (onItem ? Object.assign({}, ctx, { onItem: (k, v) => onItem(k + off, v) }) : ctx);
+      const sub = (off) => (onItem ? Object.assign({}, ctx, {
+        onItem: (k, v) => onItem(k + off, v),
+        onPartial: onPartial ? (k, v) => onPartial(k + off, v) : null,
+      }) : ctx);
       const a = await openaiTranslate(segments.slice(0, mid), cfg, sub(0));
       const b = await openaiTranslate(segments.slice(mid), cfg, sub(mid));
       return a.concat(b);
     }
     const out = await openaiCall(cfg, ctx, sysPrompt(cfg, ctx, true), JSON.stringify(segments),
-      onItem ? () => { const p = arrayStreamParser(onItem, n); return (piece) => p.push(piece); } : null);
+      onItem ? () => { const p = arrayStreamParser(onItem, n, onPartial); return (piece) => p.push(piece); } : null);
     const arr = parseArray(out, n);
     if (arr) return arr;
     // 条数对不上 / 不是合法 JSON：二分重试，最终退化为逐条翻译（已经流式显示的段落会被最终结果覆盖）
     if (ctx.signal && ctx.signal.aborted) throw new Error('cancelled');
     const mid = Math.ceil(n / 2);
-    const sub = (off) => (onItem ? Object.assign({}, ctx, { onItem: (k, v) => onItem(k + off, v) }) : ctx);
+    const sub = (off) => (onItem ? Object.assign({}, ctx, {
+      onItem: (k, v) => onItem(k + off, v),
+      onPartial: onPartial ? (k, v) => onPartial(k + off, v) : null,
+    }) : ctx);
     const a = await openaiTranslate(segments.slice(0, mid), cfg, sub(0));
     const b = await openaiTranslate(segments.slice(mid), cfg, sub(mid));
     return a.concat(b);
@@ -388,5 +423,5 @@
     deepl: { translate: deeplTranslate },
     mock: { translate: mockTranslate },
   };
-  PT.providerUtil = { parseArray, cleanLLM, sysPrompt, arrayStreamParser, estTokens, normUsage, autoMaxTokens, needTokens };
+  PT.providerUtil = { parseArray, cleanLLM, sysPrompt, arrayStreamParser, decodePartial, textPreview, estTokens, normUsage, autoMaxTokens, needTokens };
 })(globalThis);

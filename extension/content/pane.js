@@ -67,8 +67,8 @@
     return scroller && scroller.isConnected ? scroller.getBoundingClientRect().top + scroller.clientTop : 0;
   }
   let expect = null;   // 程序设置的滚动位置，用于识别"自己引起的 scroll 事件"
-  function setScroll(t) {
-    expect = { t, until: now() + 600 };
+  function setScroll(t, why) {
+    expect = { t, until: now() + 600, why: why || 'move' };
     const opt = { top: t, behavior: 'instant' };
     if (scroller && scroller.isConnected) scroller.scrollTo(opt); else window.scrollTo(opt);
   }
@@ -143,7 +143,6 @@
       scrollRaf = 0;
       const s = sstate();
       const tnow = now();
-      if (s.t !== lastScrollT) { scrollDir = s.t > lastScrollT ? 1 : -1; lastScrollT = s.t; }
       // 先判 prog：位置等于 shell 刚下发的目标（超出可滚范围时浏览器会截断，所以和截断值比较），
       // 即使本窗格刚有过输入也算 prog —— 否则两侧都"刚有输入"时会互抢驱动权
       let cause = 'other';
@@ -151,7 +150,13 @@
       else if (tnow - lastInputTs < 700 || pointerDown) cause = 'user';
       else if (tnow - lastLayoutTs < 700) cause = 'layout';
       post('scroll', { s, cause });
-      if (ROLE === 'R') onScrollForTranslate();
+      // 只有"读者在移动"才推迟翻译：用户自己滚、或外壳跟随用户滚动（prog/move）。
+      // 译文插入引起的滚动锚定（layout）和外壳的重新对齐（prog/layout）不算 —— 否则别处的译文一段段流进来时，
+      // 每次都把"停下 300ms 再翻"的计时清零，当前位置会一直等到那些请求全部结束
+      const moving = cause === 'user' || cause === 'other' || (cause === 'prog' && expect && expect.why !== 'layout');
+      // 阅读方向也只看真实移动：排版引起的小幅回拉不能把方向翻转（否则翻译窗口跟着翻到另一边，正常请求被当成"窗口外"取消）
+      if (s.t !== lastScrollT) { if (moving) scrollDir = s.t > lastScrollT ? 1 : -1; lastScrollT = s.t; }
+      if (ROLE === 'R' && moving) onScrollForTranslate();
       refreshHighlight();
     });
   }
@@ -160,7 +165,7 @@
   handlers.scrollTo = (d) => {
     const s = sstate();
     if (Math.abs(s.t - d.t) < 0.5) return;
-    setScroll(d.t);
+    setScroll(d.t, d.why);
   };
 
   /* --------------------------- 布局 / 变更 --------------------------- */
@@ -409,13 +414,17 @@
     return hit / letters.length > 0.6;
   }
 
+  /** 当前翻译窗口 [lo, hi]（内容坐标）：按滚动方向预取，往下读时多翻下方，往回翻时多翻上方 */
+  function windowOf(s) {
+    if (translateAll) return [-Infinity, Infinity];
+    const below = Math.max(0, Number(settings.prefetchScreens == null ? 0.5 : settings.prefetchScreens));
+    if (scrollDir < 0) return [s.t - s.vh * below, s.t + s.vh * 1.25];
+    return [s.t - s.vh * 0.25, s.t + s.vh * (1 + below)];
+  }
+
   /** 当前窗口内待翻译的单元，按与阅读位置的距离排序 */
   function candidates(s) {
-    const below = Math.max(0, Number(settings.prefetchScreens == null ? 0.5 : settings.prefetchScreens));
-    // 按滚动方向预取：往下读时多翻下方，往回翻时多翻上方
-    let lo = s.t - s.vh * 0.25, hi = s.t + s.vh * (1 + below);
-    if (scrollDir < 0) { lo = s.t - s.vh * below; hi = s.t + s.vh * 1.25; }
-    if (translateAll) { lo = -Infinity; hi = Infinity; }
+    const [lo, hi] = windowOf(s);
     const out = [];
     for (const u of seg.units) {
       if (!u.translatable || u.tstate || Number.isNaN(u.y)) continue;   // NaN = 不可见 / 未测量
@@ -445,10 +454,10 @@
     probeCache('wide');                                                 // 更远处的缓存后台查，不挡请求
     const cfg = providerCfg();
     const conc = Math.max(1, Math.min(cfg.concurrency || 3, 8));
-    if (inflight.size >= conc) { postStatus(); return; }
+    const s0 = sstate();
     const items = [];
     const lead = new Map();   // 同一原文在本页出现多次（"回复""分享"、重复的导航）：只发一次，译文复制给其余段落
-    for (const [, u, vis] of candidates(sstate())) {
+    for (const [, u, vis] of candidates(s0)) {
       if (alreadyTarget(u)) { u.tstate = 'skip'; continue; }
       const ser = seg.serialize(u);
       if (!ser.text || !/\p{L}/u.test(ser.text)) { u.tstate = 'skip'; continue; }
@@ -483,6 +492,8 @@
         startBatch(batch);
       }
     };
+    if (!translateAll) preempt(s0, items.filter((it) => it.vis), conc);
+    if (inflight.size >= conc) { postStatus(); return; }
     if (translateAll) send(items, true);
     else {
       send(items.filter((it) => it.vis), true);
@@ -492,14 +503,14 @@
   }
 
   function startBatch(batch) {
-    const rec = { id: ++batchSeq, batch, cancelled: false };
+    const rec = { id: ++batchSeq, batch, cancelled: false, ts: now() };
     inflight.set(rec.id, rec);
     for (const it of batch) {
       it.u.tstate = 'inflight'; setPending(it);
       for (const f of it.followers || []) { f.u.tstate = 'inflight'; setPending(f); dedupSaved++; }
     }
     runBatch(rec).finally(() => {
-      for (const it of batch) { clearPending(it); for (const f of it.followers || []) { clearPending(f); if (f.u.tstate === 'inflight') f.u.tstate = ''; } }
+      for (const it of batch) { restorePreview(it); clearPending(it); for (const f of it.followers || []) { clearPending(f); if (f.u.tstate === 'inflight') f.u.tstate = ''; } }
       inflight.delete(rec.id); postStatus(); pumpSoon();
     });
   }
@@ -513,13 +524,49 @@
       // 固定元素（导航栏等）始终"可见"，不参与判断；整批正文都已远离才取消
       const body = rec.batch.filter(({ u }) => !u.fixed && !Number.isNaN(u.y));
       if (!body.length || body.some(({ u }) => u.y + u.h >= lo && u.y <= hi)) continue;
-      rec.cancelled = true;
-      inflight.delete(rec.id);
-      cancelled++;
-      for (const it of rec.batch) {
-        for (const x of [it].concat(it.followers || [])) { clearPending(x); if (x.u.tstate === 'inflight') x.u.tstate = ''; }
-      }
-      chrome.runtime.sendMessage({ type: 'translate:cancel', reqId: TOKEN + ':' + rec.id }).catch(() => {});
+      cancelRec(rec);
+    }
+  }
+  function cancelRec(rec) {
+    rec.cancelled = true;
+    inflight.delete(rec.id);
+    cancelled++;
+    for (const it of rec.batch) {
+      restorePreview(it);
+      for (const x of [it].concat(it.followers || [])) { clearPending(x); if (x.u.tstate === 'inflight') x.u.tstate = ''; }
+    }
+    chrome.runtime.sendMessage({ type: 'translate:cancel', reqId: TOKEN + ':' + rec.id }).catch(() => {});
+  }
+
+  /**
+   * 抢占：当前屏幕上还有段落没发出去、但并发槽被别处的请求占满时（例如 A → B → C 快速跳读，B 的请求还在跑），
+   * 按优先级让出槽位：①完全不在当前翻译窗口里的旧请求（读者已经离开）先取消；②还不够就取消离视口最远的旧预取请求。
+   * 只动读者最近一次移动之前发出的请求；含当前屏幕段落的请求永远不动。只在有争用时才取消，正常慢读不多花钱。
+   */
+  function preempt(s, visList, conc) {
+    const want = Math.min(conc, visList.length);
+    let free = conc - inflight.size;
+    if (!want || free >= want) return;
+    const [lo, hi] = windowOf(s);
+    const vlo = s.t - s.vh * 0.25, vhi = s.t + s.vh * 1.1;
+    const ranked = [];
+    for (const rec of inflight.values()) {
+      // 读者停下之后才发出的请求就是为当前位置发的：永远不抢。只抢"上一个位置"留下的旧请求。
+      // （不能只靠位置判断：译文插入、两侧重新对齐时视口会来回晃几百 px，而段落位置 120ms 才重测一次，
+      //   按位置判断会把刚为当前位置发出的请求误杀，反复"发出 → 取消 → 重发"）
+      if (rec.ts >= lastScrollTs) continue;
+      const body = rec.batch.filter(({ u }) => !u.fixed && !Number.isNaN(u.y));
+      if (!body.length || body.some(({ u }) => u.y < vhi && u.y + u.h > vlo)) continue;   // 含当前屏幕段落：不动
+      const inWin = body.some(({ u }) => u.y + u.h >= lo && u.y <= hi);
+      const dist = Math.min(...body.map(({ u }) => (u.y > s.t ? u.y - s.t : s.t - (u.y + u.h))));
+      ranked.push({ rec, inWin, dist });
+    }
+    ranked.sort((a, b) => (a.inWin - b.inWin) || (b.dist - a.dist));
+    for (const r of ranked) {
+      if (free >= want) break;
+      if (r.inWin && free >= Math.min(want, 2)) break;   // 窗口内的预取只在几乎没有空槽时才让出
+      cancelRec(r.rec);
+      free++;
     }
   }
 
@@ -533,6 +580,32 @@
     if (it.anim) { it.anim.cancel(); it.anim = null; }
   }
 
+  /**
+   * 段内预览：这段还在生成，先把目前为止的译文显示出来（只对有独立容器的段落；未闭合的标签补齐，
+   * 半截标签去掉）。最终译文到达时整段覆盖；请求被取消 / 失败时恢复原文，绝不会把半截译文当原文再发出去。
+   */
+  function previewItem(it, text) {
+    const u = it.u;
+    if (it.applied != null || !it.ser.container || typeof text !== 'string' || !text) return false;
+    if (!seg.isAlive(u)) return false;
+    if (!it.previewed && seg.serialize(u).text !== it.ser.text) return false;   // 页面自己改写了，不碰
+    let t = text.replace(/<[^>]*$/, '');                // 去掉末尾半截标签
+    const open = [];
+    t.replace(/<(\/?)g(\d+)>/g, (m0, close, n) => { if (close) { if (open[open.length - 1] === n) open.pop(); } else open.push(n); return m0; });
+    for (let i = open.length - 1; i >= 0; i--) t += `</g${open[i]}>`;
+    applying = true;
+    try { seg.apply(u, it.ser, t); } catch (_) { /* 预览失败无所谓，等最终结果 */ } finally { mo.takeRecords(); applying = false; }
+    if (!it.previewed) { it.previewed = true; clearPending(it); }
+    return true;
+  }
+  function restorePreview(it) {
+    if (!it.previewed || it.applied != null) return;
+    it.previewed = false;
+    if (!seg.isAlive(it.u)) return;
+    applying = true;
+    try { seg.apply(it.u, it.ser, it.ser.text); } catch (_) { /* noop */ } finally { mo.takeRecords(); applying = false; }
+  }
+
   /** 回填一段译文（流式到达或整批返回都走这里）；同一段可被更新（以最终结果为准） */
   function applyItem(it, tr) {
     const u = it.u;
@@ -540,7 +613,7 @@
     if (it.applied === tr) return true;
     if (!seg.isAlive(u)) return false;
     // 第一次回填前确认原文没被页面改写；改写了就丢弃，稍后重译
-    if (it.applied == null && seg.serialize(u).text !== it.ser.text) { clearPending(it); u.tstate = ''; return false; }
+    if (it.applied == null && !it.previewed && seg.serialize(u).text !== it.ser.text) { clearPending(it); u.tstate = ''; return false; }
     applying = true;
     try { seg.apply(u, it.ser, tr); } finally { mo.takeRecords(); applying = false; }
     const first = it.applied == null;
@@ -562,7 +635,9 @@
     const rec = inflight.get(+id);
     if (!rec || rec.cancelled) return;
     const it = rec.batch[m.i];
-    if (it && applyItem(it, m.text)) { lastLayoutTs = now(); scheduleAnchors(); postStatus(); }
+    if (!it) return;
+    if (m.preview) { if (previewItem(it, m.text)) { lastLayoutTs = now(); scheduleAnchors(); } return; }
+    if (applyItem(it, m.text)) { lastLayoutTs = now(); scheduleAnchors(); postStatus(); }
   });
 
   async function runBatch(rec) {

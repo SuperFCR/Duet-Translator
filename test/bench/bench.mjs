@@ -8,7 +8,7 @@
 //   BENCH_LABEL       结果名 → out/<label>.json
 //   BENCH_OVERRIDES   JSON，合并进 deepseek 引擎配置，如 '{"batchChars":800,"concurrency":6}'
 //   BENCH_SETTINGS    JSON，合并进全局设置，如 '{"prefetchScreens":1}'
-//   BENCH_SCENARIOS   逗号分隔，默认 read,revisit,skim,forum
+//   BENCH_SCENARIOS   逗号分隔，默认 read,revisit,skim,forum；另有 jump（A→B→C 跳读）
 //   BENCH_READ_STEPS  read / forum 的滚动次数（默认 12）；BENCH_DWELL_MS 每步停留（默认 3500）
 //   BENCH_CAP_MS      等待上限（默认 15000）；BENCH_HEADED=1 有界面运行（需要显示器）
 //   SIM_*             模拟器参数（见 llm-sim.mjs 的 ENV_MAP）
@@ -31,6 +31,7 @@ const SETTINGS = JSON.parse(process.env.BENCH_SETTINGS || '{}');
 const SCENARIOS = (process.env.BENCH_SCENARIOS || 'read,revisit,skim,forum').split(',').map((s) => s.trim()).filter(Boolean);
 const READ_STEPS = +process.env.BENCH_READ_STEPS || 12;
 const DWELL = +process.env.BENCH_DWELL_MS || 3500;
+const JUMP_DWELL = +process.env.BENCH_JUMP_DWELL_MS || 800;   // jump 场景在 B 停留的时间
 const CAP = +process.env.BENCH_CAP_MS || 15000;
 const WATCHDOG = +process.env.BENCH_TIMEOUT_MS || 8 * 60 * 1000;
 const OUT = join(here, 'out');
@@ -204,6 +205,7 @@ async function openSplit(url) {
   const page = await browser.ctx.newPage();
   for (const p of browser.ctx.pages()) if (p !== page) await p.close().catch(() => {});
   page.on('dialog', (d) => d.accept().catch(() => {}));
+  if (process.env.BENCH_CONSOLE) page.on('console', (m) => { const t = m.text(); if (t.startsWith('[dbg]')) log('   ' + t); });
   await page.goto(url, { waitUntil: 'load' });
   const tToggle = Date.now();
   await toggleFor(page);
@@ -381,6 +383,32 @@ const scenarios = {
     }
     const quiet = await quiesce();
     return collect('skim', { s, open, stops, status: await shellStatus(s), quiet });
+  },
+  // 跳读：在 A 停一下（请求已发出）→ 迅速跳到 B 停一下 → 再跳到离 B 约 1.3 屏的 C，测 C 整屏翻完要等多久（两轮）
+  async jump() {
+    await launch();
+    readSession = null;
+    sim.reset();
+    const s = await openSplit(ARTICLE);
+    const open = await measureOpen(s, 1000);
+    await sleepUntil(s.tToggle + 1000);
+    const stops = [];
+    const hop = async (screens) => {
+      const p0 = await s.probe();
+      const dy = Math.round(screens * ((p0 && p0.vh) || 860));
+      const n = Math.max(1, Math.ceil(Math.abs(dy) / 600));
+      await wheel(s, Math.round(dy / n), n, 40);
+      return measureStop(s, p0 ? p0.y : null);
+    };
+    for (let round = 0; round < 2; round++) {
+      const mB = await hop(3);                       // A → B
+      await sleepUntil(mB.tStop + JUMP_DWELL);
+      const mC = await hop(1.3);                     // B → C（在旧规则的"远处"范围内，B 的请求不会被取消）
+      stops.push(mC);
+      await sleepUntil(Math.max(mC.tStop + 1500, Date.now()));
+    }
+    const quiet = await quiesce();
+    return collect('jump', { s, open, stops, status: await shellStatus(s), quiet });
   },
   async forum() {
     readSession = null;
