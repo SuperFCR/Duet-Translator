@@ -1,0 +1,780 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ask Forum: Do you read foreign-language pages with side-by-side translation?</title><style>
+  body { margin: 0; font: 15px/1.5 Verdana, Geneva, sans-serif; color: #222; background: #f6f6ef; }
+  .top { background: #ff6600; padding: 6px 12px; display: flex; gap: 12px; align-items: center; font-size: 14px; }
+  .top b { color: #000; } .top a { color: #000; text-decoration: none; }
+  main { max-width: 1000px; margin: 0 auto; padding: 12px 16px 60px; }
+  h1 { font-size: 20px; margin: 10px 0 4px; }
+  .sub { color: #828282; font-size: 13px; }
+  .story p { margin: 10px 0; }
+  .sort { margin: 16px 0 8px; color: #828282; font-size: 13px; }
+  .c { margin-top: 14px; padding-left: 8px; border-left: 2px solid #e0e0d0; }
+  .meta { color: #828282; font-size: 12px; display: flex; gap: 8px; align-items: baseline; }
+  .meta a { color: #828282; } .meta .user { color: #3c5a7a; font-weight: bold; text-decoration: none; }
+  .age { display: inline-block; }
+  .body p { margin: 4px 0; }
+  ul.actions { list-style: none; padding: 0; margin: 2px 0 0; display: flex; gap: 12px; font-size: 12px; }
+  ul.actions a { color: #828282; text-decoration: underline; }
+  footer { color: #828282; font-size: 12px; text-align: center; padding: 20px; }
+</style></head><body>
+<div class="top"><b>Hacker Forum</b><a href="#">new</a><a href="#">past</a><a href="#">comments</a><a href="#">ask</a><a href="#">show</a><a href="#">jobs</a><a href="#">submit</a></div>
+<main>
+<div class="story">
+<h1>Ask Forum: Do you read foreign-language pages with side-by-side translation?</h1>
+<div class="sub">412 points by polyglot_pat 14 hours ago | hide | past | favorite | 150 comments</div>
+<p>I have been using a split-view translator for a few weeks: the original page on the left, the translation on the right, scrolled in sync. It translates only what is on screen, which keeps the bill small, but I keep wondering how much is still wasted on repeated interface text.</p>
+<p>Curious how others handle this. Do you translate whole pages up front, or only the parts you actually read? And does anyone measure the token cost?</p>
+</div>
+<div class="sort">Sort by: <a href="#">top</a> | <a href="#">new</a> | <a href="#">controversial</a></div>
+<div class="c" id="c0" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-mkb_dev">mkb_dev</a><span class="pts">41 points</span><div class="age"><a href="#c0">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Back in the day we used bilingual printed editions for exactly the same reason. For long articles the scroll sync is the killer feature; everything else is a nice bonus.</p><p>Translating only what is on screen seems like a clever trade-off between speed and cost.</p><p>You can probably dedupe identical strings before sending them, which would help a lot on forums.</p></div>
+<ul class="actions"><li><a href="#r0">reply</a></li><li><a href="#s0">share</a></li><li><a href="#x0">report</a></li><li><a href="#c0">permalink</a></li></ul>
+</div>
+<div class="c" id="c1" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-lambda_lynx">lambda_lynx</a><span class="pts">45 points</span><div class="age"><a href="#c1">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The real problem is cost: translating every page in full burns tokens on content nobody reads. My experience is the opposite: full-page translation up front is less distracting than text appearing as I scroll. Back in the day we used bilingual printed editions for exactly the same reason.</p><p>Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders. This is exactly what I wanted when reading papers in a language I only half understand. Batching too many paragraphs into one request makes the first screen noticeably slower.</p><p>Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same. We built an internal tool like this and the biggest win was not translating navigation menus over and over. Some sites block framing entirely, so I am curious how the split view deals with that.</p></div>
+<ul class="actions"><li><a href="#r1">reply</a></li><li><a href="#s1">share</a></li><li><a href="#x1">report</a></li><li><a href="#c1">permalink</a></li></ul>
+</div>
+<div class="c" id="c2" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-trie_hard">trie_hard</a><span class="pts">9 points</span><div class="age"><a href="#c2">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The extension asked for access to all sites, which is a hard no at my company.</p><p>Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p><p>You can probably dedupe identical strings before sending them, which would help a lot on forums.</p></div>
+<ul class="actions"><li><a href="#r2">reply</a></li><li><a href="#s2">share</a></li><li><a href="#x2">report</a></li><li><a href="#c2">permalink</a></li></ul>
+</div>
+<div class="c" id="c3" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-pixelpusher">pixelpusher</a><span class="pts">27 points</span><div class="age"><a href="#c3">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Honestly, I would pay for this if it worked reliably on single-page apps. Some sites block framing entirely, so I am curious how the split view deals with that.</p></div>
+<ul class="actions"><li><a href="#r3">reply</a></li><li><a href="#s3">share</a></li><li><a href="#x3">report</a></li><li><a href="#c3">permalink</a></li></ul>
+</div>
+<div class="c" id="c4" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-greybeard77">greybeard77</a><span class="pts">42 points</span><div class="age"><a href="#c4">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Somebody should benchmark the token usage of these tools; my guess is most of it is wasted. You can probably dedupe identical strings before sending them, which would help a lot on forums. How does it handle inline links and code? Most tools I have used just flatten everything into plain text.</p></div>
+<ul class="actions"><li><a href="#r4">reply</a></li><li><a href="#s4">share</a></li><li><a href="#x4">report</a></li><li><a href="#c4">permalink</a></li></ul>
+</div>
+<div class="c" id="c5" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-greybeard77">greybeard77</a><span class="pts">64 points</span><div class="age"><a href="#c5">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>If it can keep the code blocks untouched, I would use it for documentation every day. For long articles the scroll sync is the killer feature; everything else is a nice bonus. I wonder how it compares with the built-in browser translator in terms of quality.</p><p>The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times. Batching too many paragraphs into one request makes the first screen noticeably slower. I am skeptical that small models keep the formatting tags intact under load.</p></div>
+<ul class="actions"><li><a href="#r5">reply</a></li><li><a href="#s5">share</a></li><li><a href="#x5">report</a></li><li><a href="#c5">permalink</a></li></ul>
+</div>
+<div class="c" id="c6" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-tabs_not_spaces">tabs_not_spaces</a><span class="pts">51 points</span><div class="age"><a href="#c6">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I am skeptical that small models keep the formatting tags intact under load. The pricing difference between cached and uncached input is large enough to design around.</p><p>I wonder how it compares with the built-in browser translator in terms of quality. I am skeptical that small models keep the formatting tags intact under load. The model occasionally returns fewer items than it was given, so the client must be defensive.</p></div>
+<ul class="actions"><li><a href="#r6">reply</a></li><li><a href="#s6">share</a></li><li><a href="#x6">report</a></li><li><a href="#c6">permalink</a></li></ul>
+</div>
+<div class="c" id="c7" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-throwaway_8812">throwaway_8812</a><span class="pts">1 points</span><div class="age"><a href="#c7">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through. Machine translation has become good enough that I read most foreign news this way now.</p><p>I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through.</p><p>One thing I would love is a way to pin the glossary for technical terms so they are translated consistently. I am skeptical that small models keep the formatting tags intact under load. Latency matters more than people think; if the translation lags behind my scrolling I stop using it.</p></div>
+<ul class="actions"><li><a href="#r7">reply</a></li><li><a href="#s7">share</a></li><li><a href="#x7">report</a></li><li><a href="#c7">permalink</a></li></ul>
+</div>
+<div class="c" id="c8" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-bitflip">bitflip</a><span class="pts">5 points</span><div class="age"><a href="#c8">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The pricing difference between cached and uncached input is large enough to design around. Translating only what is on screen seems like a clever trade-off between speed and cost.</p><p>How does it handle inline links and code? Most tools I have used just flatten everything into plain text. The pricing difference between cached and uncached input is large enough to design around. Does it work with pages that use an inner scrolling container instead of the window?</p></div>
+<ul class="actions"><li><a href="#r8">reply</a></li><li><a href="#s8">share</a></li><li><a href="#x8">report</a></li><li><a href="#c8">permalink</a></li></ul>
+</div>
+<div class="c" id="c9" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-sudo_sandwich">sudo_sandwich</a><span class="pts">18 points</span><div class="age"><a href="#c9">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Keep the original on the left and the translation on the right, it just matches how people read.</p><p>The pricing difference between cached and uncached input is large enough to design around. We built an internal tool like this and the biggest win was not translating navigation menus over and over.</p></div>
+<ul class="actions"><li><a href="#r9">reply</a></li><li><a href="#s9">share</a></li><li><a href="#x9">report</a></li><li><a href="#c9">permalink</a></li></ul>
+</div>
+<div class="c" id="c10" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-quietbyte">quietbyte</a><span class="pts">89 points</span><div class="age"><a href="#c10">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Side-by-side view is underrated for language learners, because you can glance at the original when something sounds off.</p><p>The real problem is cost: translating every page in full burns tokens on content nobody reads. Batching too many paragraphs into one request makes the first screen noticeably slower.</p></div>
+<ul class="actions"><li><a href="#r10">reply</a></li><li><a href="#s10">share</a></li><li><a href="#x10">report</a></li><li><a href="#c10">permalink</a></li></ul>
+</div>
+<div class="c" id="c11" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-heisenbug">heisenbug</a><span class="pts">95 points</span><div class="age"><a href="#c11">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Honestly, I would pay for this if it worked reliably on single-page apps. The pricing difference between cached and uncached input is large enough to design around. One thing I would love is a way to pin the glossary for technical terms so they are translated consistently.</p></div>
+<ul class="actions"><li><a href="#r11">reply</a></li><li><a href="#s11">share</a></li><li><a href="#x11">report</a></li><li><a href="#c11">permalink</a></li></ul>
+</div>
+<div class="c" id="c12" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-bitflip">bitflip</a><span class="pts">21 points</span><div class="age"><a href="#c12">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Back in the day we used bilingual printed editions for exactly the same reason. I am not convinced that output length scales the way the author claims for Japanese.</p></div>
+<ul class="actions"><li><a href="#r12">reply</a></li><li><a href="#s12">share</a></li><li><a href="#x12">report</a></li><li><a href="#c12">permalink</a></li></ul>
+</div>
+<div class="c" id="c13" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-segfault_sam">segfault_sam</a><span class="pts">80 points</span><div class="age"><a href="#c13">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Somebody should benchmark the token usage of these tools; my guess is most of it is wasted.</p><p>I tried something similar last year and the hardest part was keeping both versions aligned while scrolling. The pricing difference between cached and uncached input is large enough to design around. Batching too many paragraphs into one request makes the first screen noticeably slower.</p><p>I am skeptical that small models keep the formatting tags intact under load. Prompt caching changed the economics for us; the system prompt is basically free after the first request. The model occasionally returns fewer items than it was given, so the client must be defensive.</p></div>
+<ul class="actions"><li><a href="#r13">reply</a></li><li><a href="#s13">share</a></li><li><a href="#x13">report</a></li><li><a href="#c13">permalink</a></li></ul>
+</div>
+<div class="c" id="c14" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-nullpointer_ex">nullpointer_ex</a><span class="pts">18 points</span><div class="age"><a href="#c14">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>This thread is a good stress test, ironically. If it can keep the code blocks untouched, I would use it for documentation every day.</p></div>
+<ul class="actions"><li><a href="#r14">reply</a></li><li><a href="#s14">share</a></li><li><a href="#x14">report</a></li><li><a href="#c14">permalink</a></li></ul>
+</div>
+<div class="c" id="c15" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-quietbyte">quietbyte</a><span class="pts">50 points</span><div class="age"><a href="#c15">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Translating only what is on screen seems like a clever trade-off between speed and cost. Honestly, I would pay for this if it worked reliably on single-page apps. The pricing difference between cached and uncached input is large enough to design around.</p></div>
+<ul class="actions"><li><a href="#r15">reply</a></li><li><a href="#s15">share</a></li><li><a href="#x15">report</a></li><li><a href="#c15">permalink</a></li></ul>
+</div>
+<div class="c" id="c16" style="margin-left:66px">
+<div class="meta"><a class="user" href="#u-bitflip">bitflip</a><span class="pts">120 points</span><div class="age"><a href="#c16">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times. For long articles the scroll sync is the killer feature; everything else is a nice bonus.</p></div>
+<ul class="actions"><li><a href="#r16">reply</a></li><li><a href="#s16">share</a></li><li><a href="#x16">report</a></li><li><a href="#c16">permalink</a></li></ul>
+</div>
+<div class="c" id="c17" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-cachemiss">cachemiss</a><span class="pts">10 points</span><div class="age"><a href="#c17">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>For long articles the scroll sync is the killer feature; everything else is a nice bonus.</p><p>This thread is a good stress test, ironically. I am not convinced that output length scales the way the author claims for Japanese.</p><p>I am not convinced that output length scales the way the author claims for Japanese. One thing I would love is a way to pin the glossary for technical terms so they are translated consistently.</p></div>
+<ul class="actions"><li><a href="#r17">reply</a></li><li><a href="#s17">share</a></li><li><a href="#x17">report</a></li><li><a href="#c17">permalink</a></li></ul>
+</div>
+<div class="c" id="c18" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-async_amy">async_amy</a><span class="pts">101 points</span><div class="age"><a href="#c18">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times. Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p></div>
+<ul class="actions"><li><a href="#r18">reply</a></li><li><a href="#s18">share</a></li><li><a href="#x18">report</a></li><li><a href="#c18">permalink</a></li></ul>
+</div>
+<div class="c" id="c19" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-mkb_dev">mkb_dev</a><span class="pts">11 points</span><div class="age"><a href="#c19">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I am skeptical that small models keep the formatting tags intact under load. We built an internal tool like this and the biggest win was not translating navigation menus over and over.</p><p>The pricing difference between cached and uncached input is large enough to design around. Latency matters more than people think; if the translation lags behind my scrolling I stop using it. The extension asked for access to all sites, which is a hard no at my company.</p></div>
+<ul class="actions"><li><a href="#r19">reply</a></li><li><a href="#s19">share</a></li><li><a href="#x19">report</a></li><li><a href="#c19">permalink</a></li></ul>
+</div>
+<div class="c" id="c20" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-bitflip">bitflip</a><span class="pts">57 points</span><div class="age"><a href="#c20">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Came here to say exactly this.</p></div>
+<ul class="actions"><li><a href="#r20">reply</a></li><li><a href="#s20">share</a></li><li><a href="#x20">report</a></li><li><a href="#c20">permalink</a></li></ul>
+</div>
+<div class="c" id="c21" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-mutable_state">mutable_state</a><span class="pts">87 points</span><div class="age"><a href="#c21">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through.</p><p>Keep the original on the left and the translation on the right, it just matches how people read.</p></div>
+<ul class="actions"><li><a href="#r21">reply</a></li><li><a href="#s21">share</a></li><li><a href="#x21">report</a></li><li><a href="#c21">permalink</a></li></ul>
+</div>
+<div class="c" id="c22" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-segfault_sam">segfault_sam</a><span class="pts">109 points</span><div class="age"><a href="#c22">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Does it work with pages that use an inner scrolling container instead of the window?</p></div>
+<ul class="actions"><li><a href="#r22">reply</a></li><li><a href="#s22">share</a></li><li><a href="#x22">report</a></li><li><a href="#c22">permalink</a></li></ul>
+</div>
+<div class="c" id="c23" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-mutable_state">mutable_state</a><span class="pts">58 points</span><div class="age"><a href="#c23">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Prompt caching changed the economics for us; the system prompt is basically free after the first request. Batching too many paragraphs into one request makes the first screen noticeably slower. Side-by-side view is underrated for language learners, because you can glance at the original when something sounds off.</p></div>
+<ul class="actions"><li><a href="#r23">reply</a></li><li><a href="#s23">share</a></li><li><a href="#x23">report</a></li><li><a href="#c23">permalink</a></li></ul>
+</div>
+<div class="c" id="c24" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-quietbyte">quietbyte</a><span class="pts">32 points</span><div class="age"><a href="#c24">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The model occasionally returns fewer items than it was given, so the client must be defensive. This is exactly what I wanted when reading papers in a language I only half understand. Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same.</p><p>How does it handle inline links and code? Most tools I have used just flatten everything into plain text. Is there a self-hosted option? I already run a local model for this kind of thing. Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders.</p><p>If it can keep the code blocks untouched, I would use it for documentation every day. My experience is the opposite: full-page translation up front is less distracting than text appearing as I scroll. Machine translation has become good enough that I read most foreign news this way now.</p></div>
+<ul class="actions"><li><a href="#r24">reply</a></li><li><a href="#s24">share</a></li><li><a href="#x24">report</a></li><li><a href="#c24">permalink</a></li></ul>
+</div>
+<div class="c" id="c25" style="margin-left:66px">
+<div class="meta"><a class="user" href="#u-mutable_state">mutable_state</a><span class="pts">38 points</span><div class="age"><a href="#c25">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same. Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same. How does it handle inline links and code? Most tools I have used just flatten everything into plain text.</p></div>
+<ul class="actions"><li><a href="#r25">reply</a></li><li><a href="#s25">share</a></li><li><a href="#x25">report</a></li><li><a href="#c25">permalink</a></li></ul>
+</div>
+<div class="c" id="c26" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-off_by_one">off_by_one</a><span class="pts">34 points</span><div class="age"><a href="#c26">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I tried something similar last year and the hardest part was keeping both versions aligned while scrolling.</p><p>Somebody should benchmark the token usage of these tools; my guess is most of it is wasted.</p><p>Some sites block framing entirely, so I am curious how the split view deals with that. Please add a keyboard shortcut to toggle the split; reaching for the mouse breaks my reading flow.</p></div>
+<ul class="actions"><li><a href="#r26">reply</a></li><li><a href="#s26">share</a></li><li><a href="#x26">report</a></li><li><a href="#c26">permalink</a></li></ul>
+</div>
+<div class="c" id="c27" style="margin-left:66px">
+<div class="meta"><a class="user" href="#u-unicode_ursula">unicode_ursula</a><span class="pts">73 points</span><div class="age"><a href="#c27">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>+1, would love this.</p></div>
+<ul class="actions"><li><a href="#r27">reply</a></li><li><a href="#s27">share</a></li><li><a href="#x27">report</a></li><li><a href="#c27">permalink</a></li></ul>
+</div>
+<div class="c" id="c28" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-latency_hawk">latency_hawk</a><span class="pts">13 points</span><div class="age"><a href="#c28">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Machine translation has become good enough that I read most foreign news this way now. I tried something similar last year and the hardest part was keeping both versions aligned while scrolling.</p></div>
+<ul class="actions"><li><a href="#r28">reply</a></li><li><a href="#s28">share</a></li><li><a href="#x28">report</a></li><li><a href="#c28">permalink</a></li></ul>
+</div>
+<div class="c" id="c29" style="margin-left:66px">
+<div class="meta"><a class="user" href="#u-greybeard77">greybeard77</a><span class="pts">117 points</span><div class="age"><a href="#c29">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>This.</p></div>
+<ul class="actions"><li><a href="#r29">reply</a></li><li><a href="#s29">share</a></li><li><a href="#x29">report</a></li><li><a href="#c29">permalink</a></li></ul>
+</div>
+<div class="c" id="c30" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-mutable_state">mutable_state</a><span class="pts">73 points</span><div class="age"><a href="#c30">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>+1, would love this.</p></div>
+<ul class="actions"><li><a href="#r30">reply</a></li><li><a href="#s30">share</a></li><li><a href="#x30">report</a></li><li><a href="#c30">permalink</a></li></ul>
+</div>
+<div class="c" id="c31" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-latency_hawk">latency_hawk</a><span class="pts">119 points</span><div class="age"><a href="#c31">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I wonder how it compares with the built-in browser translator in terms of quality.</p><p>I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through. My experience is the opposite: full-page translation up front is less distracting than text appearing as I scroll.</p><p>Great work, the demo is impressively smooth on my old laptop. Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders.</p></div>
+<ul class="actions"><li><a href="#r31">reply</a></li><li><a href="#s31">share</a></li><li><a href="#x31">report</a></li><li><a href="#c31">permalink</a></li></ul>
+</div>
+<div class="c" id="c32" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-zero_cost">zero_cost</a><span class="pts">115 points</span><div class="age"><a href="#c32">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Machine translation has become good enough that I read most foreign news this way now.</p></div>
+<ul class="actions"><li><a href="#r32">reply</a></li><li><a href="#s32">share</a></li><li><a href="#x32">report</a></li><li><a href="#c32">permalink</a></li></ul>
+</div>
+<div class="c" id="c33" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-yak_shaver">yak_shaver</a><span class="pts">16 points</span><div class="age"><a href="#c33">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Same experience here.</p></div>
+<ul class="actions"><li><a href="#r33">reply</a></li><li><a href="#s33">share</a></li><li><a href="#x33">report</a></li><li><a href="#c33">permalink</a></li></ul>
+</div>
+<div class="c" id="c34" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-mkb_dev">mkb_dev</a><span class="pts">42 points</span><div class="age"><a href="#c34">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Great write-up, thanks.</p></div>
+<ul class="actions"><li><a href="#r34">reply</a></li><li><a href="#s34">share</a></li><li><a href="#x34">report</a></li><li><a href="#c34">permalink</a></li></ul>
+</div>
+<div class="c" id="c35" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-lambda_lynx">lambda_lynx</a><span class="pts">86 points</span><div class="age"><a href="#c35">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The real problem is cost: translating every page in full burns tokens on content nobody reads. Honestly, I would pay for this if it worked reliably on single-page apps. Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same.</p><p>The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times. The extension asked for access to all sites, which is a hard no at my company.</p></div>
+<ul class="actions"><li><a href="#r35">reply</a></li><li><a href="#s35">share</a></li><li><a href="#x35">report</a></li><li><a href="#c35">permalink</a></li></ul>
+</div>
+<div class="c" id="c36" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-gopher_jane">gopher_jane</a><span class="pts">55 points</span><div class="age"><a href="#c36">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Honestly, I would pay for this if it worked reliably on single-page apps. The real problem is cost: translating every page in full burns tokens on content nobody reads. Does it work with pages that use an inner scrolling container instead of the window?</p></div>
+<ul class="actions"><li><a href="#r36">reply</a></li><li><a href="#s36">share</a></li><li><a href="#x36">report</a></li><li><a href="#c36">permalink</a></li></ul>
+</div>
+<div class="c" id="c37" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-latency_hawk">latency_hawk</a><span class="pts">50 points</span><div class="age"><a href="#c37">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders. Batching too many paragraphs into one request makes the first screen noticeably slower. Honestly, I would pay for this if it worked reliably on single-page apps.</p></div>
+<ul class="actions"><li><a href="#r37">reply</a></li><li><a href="#s37">share</a></li><li><a href="#x37">report</a></li><li><a href="#c37">permalink</a></li></ul>
+</div>
+<div class="c" id="c38" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-pixelpusher">pixelpusher</a><span class="pts">9 points</span><div class="age"><a href="#c38">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Somebody should benchmark the token usage of these tools; my guess is most of it is wasted. The real problem is cost: translating every page in full burns tokens on content nobody reads. I am skeptical that small models keep the formatting tags intact under load.</p><p>You can probably dedupe identical strings before sending them, which would help a lot on forums. Translating only what is on screen seems like a clever trade-off between speed and cost. Translating only what is on screen seems like a clever trade-off between speed and cost.</p></div>
+<ul class="actions"><li><a href="#r38">reply</a></li><li><a href="#s38">share</a></li><li><a href="#x38">report</a></li><li><a href="#c38">permalink</a></li></ul>
+</div>
+<div class="c" id="c39" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-linker_error">linker_error</a><span class="pts">91 points</span><div class="age"><a href="#c39">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>This thread is a good stress test, ironically. The pricing difference between cached and uncached input is large enough to design around.</p></div>
+<ul class="actions"><li><a href="#r39">reply</a></li><li><a href="#s39">share</a></li><li><a href="#x39">report</a></li><li><a href="#c39">permalink</a></li></ul>
+</div>
+<div class="c" id="c40" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-lambda_lynx">lambda_lynx</a><span class="pts">38 points</span><div class="age"><a href="#c40">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through. The pricing difference between cached and uncached input is large enough to design around.</p><p>Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p><p>I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through. I tried something similar last year and the hardest part was keeping both versions aligned while scrolling. I am skeptical that small models keep the formatting tags intact under load.</p></div>
+<ul class="actions"><li><a href="#r40">reply</a></li><li><a href="#s40">share</a></li><li><a href="#x40">report</a></li><li><a href="#c40">permalink</a></li></ul>
+</div>
+<div class="c" id="c41" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-async_amy">async_amy</a><span class="pts">72 points</span><div class="age"><a href="#c41">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Side-by-side view is underrated for language learners, because you can glance at the original when something sounds off.</p></div>
+<ul class="actions"><li><a href="#r41">reply</a></li><li><a href="#s41">share</a></li><li><a href="#x41">report</a></li><li><a href="#c41">permalink</a></li></ul>
+</div>
+<div class="c" id="c42" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-kernelpanic">kernelpanic</a><span class="pts">73 points</span><div class="age"><a href="#c42">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>[deleted]</p></div>
+<ul class="actions"><li><a href="#r42">reply</a></li><li><a href="#s42">share</a></li><li><a href="#x42">report</a></li><li><a href="#c42">permalink</a></li></ul>
+</div>
+<div class="c" id="c43" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-lambda_lynx">lambda_lynx</a><span class="pts">57 points</span><div class="age"><a href="#c43">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times.</p></div>
+<ul class="actions"><li><a href="#r43">reply</a></li><li><a href="#s43">share</a></li><li><a href="#x43">report</a></li><li><a href="#c43">permalink</a></li></ul>
+</div>
+<div class="c" id="c44" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-linker_error">linker_error</a><span class="pts">86 points</span><div class="age"><a href="#c44">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Machine translation has become good enough that I read most foreign news this way now. This is exactly what I wanted when reading papers in a language I only half understand.</p><p>I am skeptical that small models keep the formatting tags intact under load. Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same. The pricing difference between cached and uncached input is large enough to design around.</p></div>
+<ul class="actions"><li><a href="#r44">reply</a></li><li><a href="#s44">share</a></li><li><a href="#x44">report</a></li><li><a href="#c44">permalink</a></li></ul>
+</div>
+<div class="c" id="c45" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-greybeard77">greybeard77</a><span class="pts">13 points</span><div class="age"><a href="#c45">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>For long articles the scroll sync is the killer feature; everything else is a nice bonus. The model occasionally returns fewer items than it was given, so the client must be defensive.</p><p>Keep the original on the left and the translation on the right, it just matches how people read. Honestly, I would pay for this if it worked reliably on single-page apps. I wonder how it compares with the built-in browser translator in terms of quality.</p></div>
+<ul class="actions"><li><a href="#r45">reply</a></li><li><a href="#s45">share</a></li><li><a href="#x45">report</a></li><li><a href="#c45">permalink</a></li></ul>
+</div>
+<div class="c" id="c46" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-ok_boomer_dev">ok_boomer_dev</a><span class="pts">43 points</span><div class="age"><a href="#c46">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Great work, the demo is impressively smooth on my old laptop. Some sites block framing entirely, so I am curious how the split view deals with that.</p><p>Back in the day we used bilingual printed editions for exactly the same reason.</p></div>
+<ul class="actions"><li><a href="#r46">reply</a></li><li><a href="#s46">share</a></li><li><a href="#x46">report</a></li><li><a href="#c46">permalink</a></li></ul>
+</div>
+<div class="c" id="c47" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-linker_error">linker_error</a><span class="pts">100 points</span><div class="age"><a href="#c47">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I am skeptical that small models keep the formatting tags intact under load. Prompt caching changed the economics for us; the system prompt is basically free after the first request. Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p><p>Back in the day we used bilingual printed editions for exactly the same reason. This is exactly what I wanted when reading papers in a language I only half understand. I am skeptical that small models keep the formatting tags intact under load.</p><p>How does it handle inline links and code? Most tools I have used just flatten everything into plain text. Honestly, I would pay for this if it worked reliably on single-page apps. Is there a self-hosted option? I already run a local model for this kind of thing.</p></div>
+<ul class="actions"><li><a href="#r47">reply</a></li><li><a href="#s47">share</a></li><li><a href="#x47">report</a></li><li><a href="#c47">permalink</a></li></ul>
+</div>
+<div class="c" id="c48" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-rubberduck">rubberduck</a><span class="pts">48 points</span><div class="age"><a href="#c48">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The real problem is cost: translating every page in full burns tokens on content nobody reads.</p><p>Machine translation has become good enough that I read most foreign news this way now. Translating only what is on screen seems like a clever trade-off between speed and cost.</p></div>
+<ul class="actions"><li><a href="#r48">reply</a></li><li><a href="#s48">share</a></li><li><a href="#x48">report</a></li><li><a href="#c48">permalink</a></li></ul>
+</div>
+<div class="c" id="c49" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-bitflip">bitflip</a><span class="pts">40 points</span><div class="age"><a href="#c49">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Machine translation has become good enough that I read most foreign news this way now. I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through. One thing I would love is a way to pin the glossary for technical terms so they are translated consistently.</p><p>Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same.</p><p>Machine translation has become good enough that I read most foreign news this way now.</p></div>
+<ul class="actions"><li><a href="#r49">reply</a></li><li><a href="#s49">share</a></li><li><a href="#x49">report</a></li><li><a href="#c49">permalink</a></li></ul>
+</div>
+<div class="c" id="c50" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-monad_mia">monad_mia</a><span class="pts">68 points</span><div class="age"><a href="#c50">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>How does it handle inline links and code? Most tools I have used just flatten everything into plain text. I am skeptical that small models keep the formatting tags intact under load.</p></div>
+<ul class="actions"><li><a href="#r50">reply</a></li><li><a href="#s50">share</a></li><li><a href="#x50">report</a></li><li><a href="#c50">permalink</a></li></ul>
+</div>
+<div class="c" id="c51" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-yak_shaver">yak_shaver</a><span class="pts">32 points</span><div class="age"><a href="#c51">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>One thing I would love is a way to pin the glossary for technical terms so they are translated consistently. The pricing difference between cached and uncached input is large enough to design around. Please add a keyboard shortcut to toggle the split; reaching for the mouse breaks my reading flow.</p><p>The extension asked for access to all sites, which is a hard no at my company. I tried something similar last year and the hardest part was keeping both versions aligned while scrolling.</p><p>Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders.</p></div>
+<ul class="actions"><li><a href="#r51">reply</a></li><li><a href="#s51">share</a></li><li><a href="#x51">report</a></li><li><a href="#c51">permalink</a></li></ul>
+</div>
+<div class="c" id="c52" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-unicode_ursula">unicode_ursula</a><span class="pts">78 points</span><div class="age"><a href="#c52">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>How does it handle inline links and code? Most tools I have used just flatten everything into plain text.</p><p>Back in the day we used bilingual printed editions for exactly the same reason.</p></div>
+<ul class="actions"><li><a href="#r52">reply</a></li><li><a href="#s52">share</a></li><li><a href="#x52">report</a></li><li><a href="#c52">permalink</a></li></ul>
+</div>
+<div class="c" id="c53" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-greybeard77">greybeard77</a><span class="pts">61 points</span><div class="age"><a href="#c53">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The model occasionally returns fewer items than it was given, so the client must be defensive. Please add a keyboard shortcut to toggle the split; reaching for the mouse breaks my reading flow. This thread is a good stress test, ironically.</p></div>
+<ul class="actions"><li><a href="#r53">reply</a></li><li><a href="#s53">share</a></li><li><a href="#x53">report</a></li><li><a href="#c53">permalink</a></li></ul>
+</div>
+<div class="c" id="c54" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-segfault_sam">segfault_sam</a><span class="pts">120 points</span><div class="age"><a href="#c54">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Honestly, I would pay for this if it worked reliably on single-page apps. Somebody should benchmark the token usage of these tools; my guess is most of it is wasted.</p><p>This is exactly what I wanted when reading papers in a language I only half understand.</p><p>Prompt caching changed the economics for us; the system prompt is basically free after the first request. I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through.</p></div>
+<ul class="actions"><li><a href="#r54">reply</a></li><li><a href="#s54">share</a></li><li><a href="#x54">report</a></li><li><a href="#c54">permalink</a></li></ul>
+</div>
+<div class="c" id="c55" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-heisenbug">heisenbug</a><span class="pts">92 points</span><div class="age"><a href="#c55">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same.</p><p>I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through. The pricing difference between cached and uncached input is large enough to design around. My experience is the opposite: full-page translation up front is less distracting than text appearing as I scroll.</p></div>
+<ul class="actions"><li><a href="#r55">reply</a></li><li><a href="#s55">share</a></li><li><a href="#x55">report</a></li><li><a href="#c55">permalink</a></li></ul>
+</div>
+<div class="c" id="c56" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-kernelpanic">kernelpanic</a><span class="pts">41 points</span><div class="age"><a href="#c56">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Some sites block framing entirely, so I am curious how the split view deals with that. Translating only what is on screen seems like a clever trade-off between speed and cost.</p><p>You can probably dedupe identical strings before sending them, which would help a lot on forums. How does it handle inline links and code? Most tools I have used just flatten everything into plain text. Side-by-side view is underrated for language learners, because you can glance at the original when something sounds off.</p><p>For long articles the scroll sync is the killer feature; everything else is a nice bonus.</p></div>
+<ul class="actions"><li><a href="#r56">reply</a></li><li><a href="#s56">share</a></li><li><a href="#x56">report</a></li><li><a href="#c56">permalink</a></li></ul>
+</div>
+<div class="c" id="c57" style="margin-left:66px">
+<div class="meta"><a class="user" href="#u-zero_cost">zero_cost</a><span class="pts">85 points</span><div class="age"><a href="#c57">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times.</p></div>
+<ul class="actions"><li><a href="#r57">reply</a></li><li><a href="#s57">share</a></li><li><a href="#x57">report</a></li><li><a href="#c57">permalink</a></li></ul>
+</div>
+<div class="c" id="c58" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-bitflip">bitflip</a><span class="pts">91 points</span><div class="age"><a href="#c58">5 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p><p>The extension asked for access to all sites, which is a hard no at my company. Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same. The model occasionally returns fewer items than it was given, so the client must be defensive.</p><p>If it can keep the code blocks untouched, I would use it for documentation every day.</p></div>
+<ul class="actions"><li><a href="#r58">reply</a></li><li><a href="#s58">share</a></li><li><a href="#x58">report</a></li><li><a href="#c58">permalink</a></li></ul>
+</div>
+<div class="c" id="c59" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-throwaway_8812">throwaway_8812</a><span class="pts">62 points</span><div class="age"><a href="#c59">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Machine translation has become good enough that I read most foreign news this way now. The pricing difference between cached and uncached input is large enough to design around. Somebody should benchmark the token usage of these tools; my guess is most of it is wasted.</p><p>My experience is the opposite: full-page translation up front is less distracting than text appearing as I scroll. Translating only what is on screen seems like a clever trade-off between speed and cost. Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same.</p></div>
+<ul class="actions"><li><a href="#r59">reply</a></li><li><a href="#s59">share</a></li><li><a href="#x59">report</a></li><li><a href="#c59">permalink</a></li></ul>
+</div>
+<div class="c" id="c60" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-gopher_jane">gopher_jane</a><span class="pts">87 points</span><div class="age"><a href="#c60">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I wonder how it compares with the built-in browser translator in terms of quality. How does it handle inline links and code? Most tools I have used just flatten everything into plain text. Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p></div>
+<ul class="actions"><li><a href="#r60">reply</a></li><li><a href="#s60">share</a></li><li><a href="#x60">report</a></li><li><a href="#c60">permalink</a></li></ul>
+</div>
+<div class="c" id="c61" style="margin-left:66px">
+<div class="meta"><a class="user" href="#u-ok_boomer_dev">ok_boomer_dev</a><span class="pts">66 points</span><div class="age"><a href="#c61">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>How does it handle inline links and code? Most tools I have used just flatten everything into plain text. I tried something similar last year and the hardest part was keeping both versions aligned while scrolling. Is there a self-hosted option? I already run a local model for this kind of thing.</p></div>
+<ul class="actions"><li><a href="#r61">reply</a></li><li><a href="#s61">share</a></li><li><a href="#x61">report</a></li><li><a href="#c61">permalink</a></li></ul>
+</div>
+<div class="c" id="c62" style="margin-left:88px">
+<div class="meta"><a class="user" href="#u-latency_hawk">latency_hawk</a><span class="pts">50 points</span><div class="age"><a href="#c62">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Keep the original on the left and the translation on the right, it just matches how people read. Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders. I wonder how it compares with the built-in browser translator in terms of quality.</p></div>
+<ul class="actions"><li><a href="#r62">reply</a></li><li><a href="#s62">share</a></li><li><a href="#x62">report</a></li><li><a href="#c62">permalink</a></li></ul>
+</div>
+<div class="c" id="c63" style="margin-left:88px">
+<div class="meta"><a class="user" href="#u-deadlock_dan">deadlock_dan</a><span class="pts">30 points</span><div class="age"><a href="#c63">5 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times. One thing I would love is a way to pin the glossary for technical terms so they are translated consistently. My experience is the opposite: full-page translation up front is less distracting than text appearing as I scroll.</p><p>Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same. If it can keep the code blocks untouched, I would use it for documentation every day. Latency matters more than people think; if the translation lags behind my scrolling I stop using it.</p></div>
+<ul class="actions"><li><a href="#r63">reply</a></li><li><a href="#s63">share</a></li><li><a href="#x63">report</a></li><li><a href="#c63">permalink</a></li></ul>
+</div>
+<div class="c" id="c64" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-unicode_ursula">unicode_ursula</a><span class="pts">58 points</span><div class="age"><a href="#c64">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>My experience is the opposite: full-page translation up front is less distracting than text appearing as I scroll. Prompt caching changed the economics for us; the system prompt is basically free after the first request. The real problem is cost: translating every page in full burns tokens on content nobody reads.</p><p>This thread is a good stress test, ironically.</p></div>
+<ul class="actions"><li><a href="#r64">reply</a></li><li><a href="#s64">share</a></li><li><a href="#x64">report</a></li><li><a href="#c64">permalink</a></li></ul>
+</div>
+<div class="c" id="c65" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-heisenbug">heisenbug</a><span class="pts">55 points</span><div class="age"><a href="#c65">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through. Some sites block framing entirely, so I am curious how the split view deals with that. Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders.</p><p>Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p></div>
+<ul class="actions"><li><a href="#r65">reply</a></li><li><a href="#s65">share</a></li><li><a href="#x65">report</a></li><li><a href="#c65">permalink</a></li></ul>
+</div>
+<div class="c" id="c66" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-zero_cost">zero_cost</a><span class="pts">120 points</span><div class="age"><a href="#c66">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>If it can keep the code blocks untouched, I would use it for documentation every day.</p><p>Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders.</p><p>I am skeptical that small models keep the formatting tags intact under load. For long articles the scroll sync is the killer feature; everything else is a nice bonus.</p></div>
+<ul class="actions"><li><a href="#r66">reply</a></li><li><a href="#s66">share</a></li><li><a href="#x66">report</a></li><li><a href="#c66">permalink</a></li></ul>
+</div>
+<div class="c" id="c67" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-latency_hawk">latency_hawk</a><span class="pts">18 points</span><div class="age"><a href="#c67">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same. Great work, the demo is impressively smooth on my old laptop.</p></div>
+<ul class="actions"><li><a href="#r67">reply</a></li><li><a href="#s67">share</a></li><li><a href="#x67">report</a></li><li><a href="#c67">permalink</a></li></ul>
+</div>
+<div class="c" id="c68" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-mkb_dev">mkb_dev</a><span class="pts">75 points</span><div class="age"><a href="#c68">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Some sites block framing entirely, so I am curious how the split view deals with that. Translating only what is on screen seems like a clever trade-off between speed and cost. I am not convinced that output length scales the way the author claims for Japanese.</p></div>
+<ul class="actions"><li><a href="#r68">reply</a></li><li><a href="#s68">share</a></li><li><a href="#x68">report</a></li><li><a href="#c68">permalink</a></li></ul>
+</div>
+<div class="c" id="c69" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-sudo_sandwich">sudo_sandwich</a><span class="pts">86 points</span><div class="age"><a href="#c69">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Latency matters more than people think; if the translation lags behind my scrolling I stop using it. Keep the original on the left and the translation on the right, it just matches how people read. I tried something similar last year and the hardest part was keeping both versions aligned while scrolling.</p><p>This thread is a good stress test, ironically.</p></div>
+<ul class="actions"><li><a href="#r69">reply</a></li><li><a href="#s69">share</a></li><li><a href="#x69">report</a></li><li><a href="#c69">permalink</a></li></ul>
+</div>
+<div class="c" id="c70" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-pixelpusher">pixelpusher</a><span class="pts">3 points</span><div class="age"><a href="#c70">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Great write-up, thanks.</p></div>
+<ul class="actions"><li><a href="#r70">reply</a></li><li><a href="#s70">share</a></li><li><a href="#x70">report</a></li><li><a href="#c70">permalink</a></li></ul>
+</div>
+<div class="c" id="c71" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-kernelpanic">kernelpanic</a><span class="pts">17 points</span><div class="age"><a href="#c71">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The model occasionally returns fewer items than it was given, so the client must be defensive. Side-by-side view is underrated for language learners, because you can glance at the original when something sounds off. The real problem is cost: translating every page in full burns tokens on content nobody reads.</p><p>Some sites block framing entirely, so I am curious how the split view deals with that.</p><p>Machine translation has become good enough that I read most foreign news this way now. We built an internal tool like this and the biggest win was not translating navigation menus over and over.</p></div>
+<ul class="actions"><li><a href="#r71">reply</a></li><li><a href="#s71">share</a></li><li><a href="#x71">report</a></li><li><a href="#c71">permalink</a></li></ul>
+</div>
+<div class="c" id="c72" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-linker_error">linker_error</a><span class="pts">84 points</span><div class="age"><a href="#c72">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>If it can keep the code blocks untouched, I would use it for documentation every day. Back in the day we used bilingual printed editions for exactly the same reason. If it can keep the code blocks untouched, I would use it for documentation every day.</p></div>
+<ul class="actions"><li><a href="#r72">reply</a></li><li><a href="#s72">share</a></li><li><a href="#x72">report</a></li><li><a href="#c72">permalink</a></li></ul>
+</div>
+<div class="c" id="c73" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-yak_shaver">yak_shaver</a><span class="pts">95 points</span><div class="age"><a href="#c73">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>If it can keep the code blocks untouched, I would use it for documentation every day. Latency matters more than people think; if the translation lags behind my scrolling I stop using it.</p></div>
+<ul class="actions"><li><a href="#r73">reply</a></li><li><a href="#s73">share</a></li><li><a href="#x73">report</a></li><li><a href="#c73">permalink</a></li></ul>
+</div>
+<div class="c" id="c74" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-kernelpanic">kernelpanic</a><span class="pts">28 points</span><div class="age"><a href="#c74">5 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I wonder how it compares with the built-in browser translator in terms of quality. My experience is the opposite: full-page translation up front is less distracting than text appearing as I scroll. One thing I would love is a way to pin the glossary for technical terms so they are translated consistently.</p><p>Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p><p>Translating only what is on screen seems like a clever trade-off between speed and cost.</p></div>
+<ul class="actions"><li><a href="#r74">reply</a></li><li><a href="#s74">share</a></li><li><a href="#x74">report</a></li><li><a href="#c74">permalink</a></li></ul>
+</div>
+<div class="c" id="c75" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-mkb_dev">mkb_dev</a><span class="pts">60 points</span><div class="age"><a href="#c75">5 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>[deleted]</p></div>
+<ul class="actions"><li><a href="#r75">reply</a></li><li><a href="#s75">share</a></li><li><a href="#x75">report</a></li><li><a href="#c75">permalink</a></li></ul>
+</div>
+<div class="c" id="c76" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-mkb_dev">mkb_dev</a><span class="pts">95 points</span><div class="age"><a href="#c76">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The extension asked for access to all sites, which is a hard no at my company.</p></div>
+<ul class="actions"><li><a href="#r76">reply</a></li><li><a href="#s76">share</a></li><li><a href="#x76">report</a></li><li><a href="#c76">permalink</a></li></ul>
+</div>
+<div class="c" id="c77" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-greybeard77">greybeard77</a><span class="pts">7 points</span><div class="age"><a href="#c77">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>+1, would love this.</p></div>
+<ul class="actions"><li><a href="#r77">reply</a></li><li><a href="#s77">share</a></li><li><a href="#x77">report</a></li><li><a href="#c77">permalink</a></li></ul>
+</div>
+<div class="c" id="c78" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-segfault_sam">segfault_sam</a><span class="pts">73 points</span><div class="age"><a href="#c78">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Is there a self-hosted option? I already run a local model for this kind of thing. Some sites block framing entirely, so I am curious how the split view deals with that. Batching too many paragraphs into one request makes the first screen noticeably slower.</p><p>Please add a keyboard shortcut to toggle the split; reaching for the mouse breaks my reading flow. I am not convinced that output length scales the way the author claims for Japanese. One thing I would love is a way to pin the glossary for technical terms so they are translated consistently.</p></div>
+<ul class="actions"><li><a href="#r78">reply</a></li><li><a href="#s78">share</a></li><li><a href="#x78">report</a></li><li><a href="#c78">permalink</a></li></ul>
+</div>
+<div class="c" id="c79" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-throwaway_8812">throwaway_8812</a><span class="pts">115 points</span><div class="age"><a href="#c79">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same.</p><p>For long articles the scroll sync is the killer feature; everything else is a nice bonus.</p><p>Somebody should benchmark the token usage of these tools; my guess is most of it is wasted. The extension asked for access to all sites, which is a hard no at my company. Great work, the demo is impressively smooth on my old laptop.</p></div>
+<ul class="actions"><li><a href="#r79">reply</a></li><li><a href="#s79">share</a></li><li><a href="#x79">report</a></li><li><a href="#c79">permalink</a></li></ul>
+</div>
+<div class="c" id="c80" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-heisenbug">heisenbug</a><span class="pts">91 points</span><div class="age"><a href="#c80">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>You can probably dedupe identical strings before sending them, which would help a lot on forums.</p></div>
+<ul class="actions"><li><a href="#r80">reply</a></li><li><a href="#s80">share</a></li><li><a href="#x80">report</a></li><li><a href="#c80">permalink</a></li></ul>
+</div>
+<div class="c" id="c81" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-yak_shaver">yak_shaver</a><span class="pts">66 points</span><div class="age"><a href="#c81">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The model occasionally returns fewer items than it was given, so the client must be defensive. I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through.</p><p>For long articles the scroll sync is the killer feature; everything else is a nice bonus. Machine translation has become good enough that I read most foreign news this way now. Honestly, I would pay for this if it worked reliably on single-page apps.</p></div>
+<ul class="actions"><li><a href="#r81">reply</a></li><li><a href="#s81">share</a></li><li><a href="#x81">report</a></li><li><a href="#c81">permalink</a></li></ul>
+</div>
+<div class="c" id="c82" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-lambda_lynx">lambda_lynx</a><span class="pts">4 points</span><div class="age"><a href="#c82">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>This is exactly what I wanted when reading papers in a language I only half understand. Great work, the demo is impressively smooth on my old laptop. I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through.</p><p>Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same.</p></div>
+<ul class="actions"><li><a href="#r82">reply</a></li><li><a href="#s82">share</a></li><li><a href="#x82">report</a></li><li><a href="#c82">permalink</a></li></ul>
+</div>
+<div class="c" id="c83" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-mkb_dev">mkb_dev</a><span class="pts">6 points</span><div class="age"><a href="#c83">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>We built an internal tool like this and the biggest win was not translating navigation menus over and over. I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through. One thing I would love is a way to pin the glossary for technical terms so they are translated consistently.</p></div>
+<ul class="actions"><li><a href="#r83">reply</a></li><li><a href="#s83">share</a></li><li><a href="#x83">report</a></li><li><a href="#c83">permalink</a></li></ul>
+</div>
+<div class="c" id="c84" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-mkb_dev">mkb_dev</a><span class="pts">96 points</span><div class="age"><a href="#c84">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>You can probably dedupe identical strings before sending them, which would help a lot on forums.</p></div>
+<ul class="actions"><li><a href="#r84">reply</a></li><li><a href="#s84">share</a></li><li><a href="#x84">report</a></li><li><a href="#c84">permalink</a></li></ul>
+</div>
+<div class="c" id="c85" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-quietbyte">quietbyte</a><span class="pts">7 points</span><div class="age"><a href="#c85">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Somebody should benchmark the token usage of these tools; my guess is most of it is wasted.</p></div>
+<ul class="actions"><li><a href="#r85">reply</a></li><li><a href="#s85">share</a></li><li><a href="#x85">report</a></li><li><a href="#c85">permalink</a></li></ul>
+</div>
+<div class="c" id="c86" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-greybeard77">greybeard77</a><span class="pts">115 points</span><div class="age"><a href="#c86">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Latency matters more than people think; if the translation lags behind my scrolling I stop using it.</p></div>
+<ul class="actions"><li><a href="#r86">reply</a></li><li><a href="#s86">share</a></li><li><a href="#x86">report</a></li><li><a href="#c86">permalink</a></li></ul>
+</div>
+<div class="c" id="c87" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-rubberduck">rubberduck</a><span class="pts">109 points</span><div class="age"><a href="#c87">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Translating only what is on screen seems like a clever trade-off between speed and cost. I am skeptical that small models keep the formatting tags intact under load.</p><p>Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same. Batching too many paragraphs into one request makes the first screen noticeably slower. I wonder how it compares with the built-in browser translator in terms of quality.</p><p>Machine translation has become good enough that I read most foreign news this way now. Does it work with pages that use an inner scrolling container instead of the window? The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times.</p></div>
+<ul class="actions"><li><a href="#r87">reply</a></li><li><a href="#s87">share</a></li><li><a href="#x87">report</a></li><li><a href="#c87">permalink</a></li></ul>
+</div>
+<div class="c" id="c88" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-latency_hawk">latency_hawk</a><span class="pts">3 points</span><div class="age"><a href="#c88">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I tried something similar last year and the hardest part was keeping both versions aligned while scrolling. This thread is a good stress test, ironically.</p><p>The extension asked for access to all sites, which is a hard no at my company. How does it handle inline links and code? Most tools I have used just flatten everything into plain text. This thread is a good stress test, ironically.</p></div>
+<ul class="actions"><li><a href="#r88">reply</a></li><li><a href="#s88">share</a></li><li><a href="#x88">report</a></li><li><a href="#c88">permalink</a></li></ul>
+</div>
+<div class="c" id="c89" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-cachemiss">cachemiss</a><span class="pts">104 points</span><div class="age"><a href="#c89">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>My experience is the opposite: full-page translation up front is less distracting than text appearing as I scroll. The model occasionally returns fewer items than it was given, so the client must be defensive.</p><p>Latency matters more than people think; if the translation lags behind my scrolling I stop using it. Please add a keyboard shortcut to toggle the split; reaching for the mouse breaks my reading flow.</p><p>How does it handle inline links and code? Most tools I have used just flatten everything into plain text. If it can keep the code blocks untouched, I would use it for documentation every day. The extension asked for access to all sites, which is a hard no at my company.</p></div>
+<ul class="actions"><li><a href="#r89">reply</a></li><li><a href="#s89">share</a></li><li><a href="#x89">report</a></li><li><a href="#c89">permalink</a></li></ul>
+</div>
+<div class="c" id="c90" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-unicode_ursula">unicode_ursula</a><span class="pts">98 points</span><div class="age"><a href="#c90">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>This is exactly what I wanted when reading papers in a language I only half understand.</p><p>Back in the day we used bilingual printed editions for exactly the same reason. I am skeptical that small models keep the formatting tags intact under load.</p><p>Batching too many paragraphs into one request makes the first screen noticeably slower. Is there a self-hosted option? I already run a local model for this kind of thing.</p></div>
+<ul class="actions"><li><a href="#r90">reply</a></li><li><a href="#s90">share</a></li><li><a href="#x90">report</a></li><li><a href="#c90">permalink</a></li></ul>
+</div>
+<div class="c" id="c91" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-cachemiss">cachemiss</a><span class="pts">15 points</span><div class="age"><a href="#c91">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The extension asked for access to all sites, which is a hard no at my company.</p><p>Batching too many paragraphs into one request makes the first screen noticeably slower. Batching too many paragraphs into one request makes the first screen noticeably slower. Back in the day we used bilingual printed editions for exactly the same reason.</p></div>
+<ul class="actions"><li><a href="#r91">reply</a></li><li><a href="#s91">share</a></li><li><a href="#x91">report</a></li><li><a href="#c91">permalink</a></li></ul>
+</div>
+<div class="c" id="c92" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-monad_mia">monad_mia</a><span class="pts">16 points</span><div class="age"><a href="#c92">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>My experience is the opposite: full-page translation up front is less distracting than text appearing as I scroll. The extension asked for access to all sites, which is a hard no at my company.</p></div>
+<ul class="actions"><li><a href="#r92">reply</a></li><li><a href="#s92">share</a></li><li><a href="#x92">report</a></li><li><a href="#c92">permalink</a></li></ul>
+</div>
+<div class="c" id="c93" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-deadlock_dan">deadlock_dan</a><span class="pts">24 points</span><div class="age"><a href="#c93">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>We built an internal tool like this and the biggest win was not translating navigation menus over and over.</p><p>How does it handle inline links and code? Most tools I have used just flatten everything into plain text.</p><p>Is there a self-hosted option? I already run a local model for this kind of thing. Batching too many paragraphs into one request makes the first screen noticeably slower.</p></div>
+<ul class="actions"><li><a href="#r93">reply</a></li><li><a href="#s93">share</a></li><li><a href="#x93">report</a></li><li><a href="#c93">permalink</a></li></ul>
+</div>
+<div class="c" id="c94" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-greybeard77">greybeard77</a><span class="pts">116 points</span><div class="age"><a href="#c94">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Is there a self-hosted option? I already run a local model for this kind of thing. Back in the day we used bilingual printed editions for exactly the same reason.</p><p>Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders. How does it handle inline links and code? Most tools I have used just flatten everything into plain text.</p></div>
+<ul class="actions"><li><a href="#r94">reply</a></li><li><a href="#s94">share</a></li><li><a href="#x94">report</a></li><li><a href="#c94">permalink</a></li></ul>
+</div>
+<div class="c" id="c95" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-trie_hard">trie_hard</a><span class="pts">18 points</span><div class="age"><a href="#c95">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through.</p><p>This is exactly what I wanted when reading papers in a language I only half understand.</p><p>Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same. Honestly, I would pay for this if it worked reliably on single-page apps.</p></div>
+<ul class="actions"><li><a href="#r95">reply</a></li><li><a href="#s95">share</a></li><li><a href="#x95">report</a></li><li><a href="#c95">permalink</a></li></ul>
+</div>
+<div class="c" id="c96" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-monad_mia">monad_mia</a><span class="pts">17 points</span><div class="age"><a href="#c96">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Back in the day we used bilingual printed editions for exactly the same reason. I tried something similar last year and the hardest part was keeping both versions aligned while scrolling.</p><p>Prompt caching changed the economics for us; the system prompt is basically free after the first request. How does it handle inline links and code? Most tools I have used just flatten everything into plain text.</p><p>For long articles the scroll sync is the killer feature; everything else is a nice bonus. I tried something similar last year and the hardest part was keeping both versions aligned while scrolling. Somebody should benchmark the token usage of these tools; my guess is most of it is wasted.</p></div>
+<ul class="actions"><li><a href="#r96">reply</a></li><li><a href="#s96">share</a></li><li><a href="#x96">report</a></li><li><a href="#c96">permalink</a></li></ul>
+</div>
+<div class="c" id="c97" style="margin-left:66px">
+<div class="meta"><a class="user" href="#u-ok_boomer_dev">ok_boomer_dev</a><span class="pts">108 points</span><div class="age"><a href="#c97">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Somebody should benchmark the token usage of these tools; my guess is most of it is wasted. The real problem is cost: translating every page in full burns tokens on content nobody reads.</p></div>
+<ul class="actions"><li><a href="#r97">reply</a></li><li><a href="#s97">share</a></li><li><a href="#x97">report</a></li><li><a href="#c97">permalink</a></li></ul>
+</div>
+<div class="c" id="c98" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-greybeard77">greybeard77</a><span class="pts">42 points</span><div class="age"><a href="#c98">5 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Latency matters more than people think; if the translation lags behind my scrolling I stop using it. Does it work with pages that use an inner scrolling container instead of the window? Honestly, I would pay for this if it worked reliably on single-page apps.</p></div>
+<ul class="actions"><li><a href="#r98">reply</a></li><li><a href="#s98">share</a></li><li><a href="#x98">report</a></li><li><a href="#c98">permalink</a></li></ul>
+</div>
+<div class="c" id="c99" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-latency_hawk">latency_hawk</a><span class="pts">74 points</span><div class="age"><a href="#c99">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Great write-up, thanks.</p></div>
+<ul class="actions"><li><a href="#r99">reply</a></li><li><a href="#s99">share</a></li><li><a href="#x99">report</a></li><li><a href="#c99">permalink</a></li></ul>
+</div>
+<div class="c" id="c100" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-ok_boomer_dev">ok_boomer_dev</a><span class="pts">119 points</span><div class="age"><a href="#c100">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Somebody should benchmark the token usage of these tools; my guess is most of it is wasted. Side-by-side view is underrated for language learners, because you can glance at the original when something sounds off. Is there a self-hosted option? I already run a local model for this kind of thing.</p><p>Great work, the demo is impressively smooth on my old laptop. Honestly, I would pay for this if it worked reliably on single-page apps. Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same.</p><p>The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times. The real problem is cost: translating every page in full burns tokens on content nobody reads. Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders.</p></div>
+<ul class="actions"><li><a href="#r100">reply</a></li><li><a href="#s100">share</a></li><li><a href="#x100">report</a></li><li><a href="#c100">permalink</a></li></ul>
+</div>
+<div class="c" id="c101" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-oldschoolsysadmin">oldschoolsysadmin</a><span class="pts">114 points</span><div class="age"><a href="#c101">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I wonder how it compares with the built-in browser translator in terms of quality. Is there a self-hosted option? I already run a local model for this kind of thing. One thing I would love is a way to pin the glossary for technical terms so they are translated consistently.</p><p>Latency matters more than people think; if the translation lags behind my scrolling I stop using it.</p></div>
+<ul class="actions"><li><a href="#r101">reply</a></li><li><a href="#s101">share</a></li><li><a href="#x101">report</a></li><li><a href="#c101">permalink</a></li></ul>
+</div>
+<div class="c" id="c102" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-quietbyte">quietbyte</a><span class="pts">77 points</span><div class="age"><a href="#c102">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>This thread is a good stress test, ironically.</p><p>Please add a keyboard shortcut to toggle the split; reaching for the mouse breaks my reading flow. Machine translation has become good enough that I read most foreign news this way now.</p></div>
+<ul class="actions"><li><a href="#r102">reply</a></li><li><a href="#s102">share</a></li><li><a href="#x102">report</a></li><li><a href="#c102">permalink</a></li></ul>
+</div>
+<div class="c" id="c103" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-pixelpusher">pixelpusher</a><span class="pts">104 points</span><div class="age"><a href="#c103">5 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>One thing I would love is a way to pin the glossary for technical terms so they are translated consistently. Back in the day we used bilingual printed editions for exactly the same reason. One thing I would love is a way to pin the glossary for technical terms so they are translated consistently.</p></div>
+<ul class="actions"><li><a href="#r103">reply</a></li><li><a href="#s103">share</a></li><li><a href="#x103">report</a></li><li><a href="#c103">permalink</a></li></ul>
+</div>
+<div class="c" id="c104" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-off_by_one">off_by_one</a><span class="pts">100 points</span><div class="age"><a href="#c104">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Same experience here.</p></div>
+<ul class="actions"><li><a href="#r104">reply</a></li><li><a href="#s104">share</a></li><li><a href="#x104">report</a></li><li><a href="#c104">permalink</a></li></ul>
+</div>
+<div class="c" id="c105" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-lambda_lynx">lambda_lynx</a><span class="pts">54 points</span><div class="age"><a href="#c105">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I would rather it waited a moment after I stop scrolling than fire requests while I am flicking through. The extension asked for access to all sites, which is a hard no at my company. I am skeptical that small models keep the formatting tags intact under load.</p><p>Great work, the demo is impressively smooth on my old laptop. I am not convinced that output length scales the way the author claims for Japanese.</p></div>
+<ul class="actions"><li><a href="#r105">reply</a></li><li><a href="#s105">share</a></li><li><a href="#x105">report</a></li><li><a href="#c105">permalink</a></li></ul>
+</div>
+<div class="c" id="c106" style="margin-left:66px">
+<div class="meta"><a class="user" href="#u-ferrous_oxide">ferrous_oxide</a><span class="pts">108 points</span><div class="age"><a href="#c106">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Same experience here.</p></div>
+<ul class="actions"><li><a href="#r106">reply</a></li><li><a href="#s106">share</a></li><li><a href="#x106">report</a></li><li><a href="#c106">permalink</a></li></ul>
+</div>
+<div class="c" id="c107" style="margin-left:88px">
+<div class="meta"><a class="user" href="#u-sudo_sandwich">sudo_sandwich</a><span class="pts">113 points</span><div class="age"><a href="#c107">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Honestly, I would pay for this if it worked reliably on single-page apps. Side-by-side view is underrated for language learners, because you can glance at the original when something sounds off. Latency matters more than people think; if the translation lags behind my scrolling I stop using it.</p><p>Back in the day we used bilingual printed editions for exactly the same reason. If it can keep the code blocks untouched, I would use it for documentation every day. Somebody should benchmark the token usage of these tools; my guess is most of it is wasted.</p></div>
+<ul class="actions"><li><a href="#r107">reply</a></li><li><a href="#s107">share</a></li><li><a href="#x107">report</a></li><li><a href="#c107">permalink</a></li></ul>
+</div>
+<div class="c" id="c108" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-yak_shaver">yak_shaver</a><span class="pts">120 points</span><div class="age"><a href="#c108">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Translating only what is on screen seems like a clever trade-off between speed and cost. If it can keep the code blocks untouched, I would use it for documentation every day. Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same.</p><p>Some sites block framing entirely, so I am curious how the split view deals with that. This thread is a good stress test, ironically. Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same.</p><p>This thread is a good stress test, ironically.</p></div>
+<ul class="actions"><li><a href="#r108">reply</a></li><li><a href="#s108">share</a></li><li><a href="#x108">report</a></li><li><a href="#c108">permalink</a></li></ul>
+</div>
+<div class="c" id="c109" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-segfault_sam">segfault_sam</a><span class="pts">101 points</span><div class="age"><a href="#c109">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Is there a self-hosted option? I already run a local model for this kind of thing.</p><p>Latency matters more than people think; if the translation lags behind my scrolling I stop using it. The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times. If it can keep the code blocks untouched, I would use it for documentation every day.</p></div>
+<ul class="actions"><li><a href="#r109">reply</a></li><li><a href="#s109">share</a></li><li><a href="#x109">report</a></li><li><a href="#c109">permalink</a></li></ul>
+</div>
+<div class="c" id="c110" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-trie_hard">trie_hard</a><span class="pts">88 points</span><div class="age"><a href="#c110">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>[deleted]</p></div>
+<ul class="actions"><li><a href="#r110">reply</a></li><li><a href="#s110">share</a></li><li><a href="#x110">report</a></li><li><a href="#c110">permalink</a></li></ul>
+</div>
+<div class="c" id="c111" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-unicode_ursula">unicode_ursula</a><span class="pts">108 points</span><div class="age"><a href="#c111">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p><p>Machine translation has become good enough that I read most foreign news this way now.</p></div>
+<ul class="actions"><li><a href="#r111">reply</a></li><li><a href="#s111">share</a></li><li><a href="#x111">report</a></li><li><a href="#c111">permalink</a></li></ul>
+</div>
+<div class="c" id="c112" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-unicode_ursula">unicode_ursula</a><span class="pts">57 points</span><div class="age"><a href="#c112">1 day ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Does it work with pages that use an inner scrolling container instead of the window?</p></div>
+<ul class="actions"><li><a href="#r112">reply</a></li><li><a href="#s112">share</a></li><li><a href="#x112">report</a></li><li><a href="#c112">permalink</a></li></ul>
+</div>
+<div class="c" id="c113" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-bitflip">bitflip</a><span class="pts">37 points</span><div class="age"><a href="#c113">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>For long articles the scroll sync is the killer feature; everything else is a nice bonus. The extension asked for access to all sites, which is a hard no at my company.</p></div>
+<ul class="actions"><li><a href="#r113">reply</a></li><li><a href="#s113">share</a></li><li><a href="#x113">report</a></li><li><a href="#c113">permalink</a></li></ul>
+</div>
+<div class="c" id="c114" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-quietbyte">quietbyte</a><span class="pts">15 points</span><div class="age"><a href="#c114">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I am not convinced that output length scales the way the author claims for Japanese. The pricing difference between cached and uncached input is large enough to design around.</p></div>
+<ul class="actions"><li><a href="#r114">reply</a></li><li><a href="#s114">share</a></li><li><a href="#x114">report</a></li><li><a href="#c114">permalink</a></li></ul>
+</div>
+<div class="c" id="c115" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-nullpointer_ex">nullpointer_ex</a><span class="pts">9 points</span><div class="age"><a href="#c115">5 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Some sites block framing entirely, so I am curious how the split view deals with that. Latency matters more than people think; if the translation lags behind my scrolling I stop using it.</p><p>The real problem is cost: translating every page in full burns tokens on content nobody reads. Back in the day we used bilingual printed editions for exactly the same reason. We built an internal tool like this and the biggest win was not translating navigation menus over and over.</p></div>
+<ul class="actions"><li><a href="#r115">reply</a></li><li><a href="#s115">share</a></li><li><a href="#x115">report</a></li><li><a href="#c115">permalink</a></li></ul>
+</div>
+<div class="c" id="c116" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-segfault_sam">segfault_sam</a><span class="pts">101 points</span><div class="age"><a href="#c116">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Keep the original on the left and the translation on the right, it just matches how people read. The real problem is cost: translating every page in full burns tokens on content nobody reads.</p></div>
+<ul class="actions"><li><a href="#r116">reply</a></li><li><a href="#s116">share</a></li><li><a href="#x116">report</a></li><li><a href="#c116">permalink</a></li></ul>
+</div>
+<div class="c" id="c117" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-tabs_not_spaces">tabs_not_spaces</a><span class="pts">39 points</span><div class="age"><a href="#c117">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Great work, the demo is impressively smooth on my old laptop. Batching too many paragraphs into one request makes the first screen noticeably slower. I am skeptical that small models keep the formatting tags intact under load.</p><p>If it can keep the code blocks untouched, I would use it for documentation every day.</p><p>I wonder how it compares with the built-in browser translator in terms of quality. Keep the original on the left and the translation on the right, it just matches how people read.</p></div>
+<ul class="actions"><li><a href="#r117">reply</a></li><li><a href="#s117">share</a></li><li><a href="#x117">report</a></li><li><a href="#c117">permalink</a></li></ul>
+</div>
+<div class="c" id="c118" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-rubberduck">rubberduck</a><span class="pts">74 points</span><div class="age"><a href="#c118">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>+1, would love this.</p></div>
+<ul class="actions"><li><a href="#r118">reply</a></li><li><a href="#s118">share</a></li><li><a href="#x118">report</a></li><li><a href="#c118">permalink</a></li></ul>
+</div>
+<div class="c" id="c119" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-monad_mia">monad_mia</a><span class="pts">25 points</span><div class="age"><a href="#c119">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Batching too many paragraphs into one request makes the first screen noticeably slower.</p><p>Side-by-side view is underrated for language learners, because you can glance at the original when something sounds off. Batching too many paragraphs into one request makes the first screen noticeably slower.</p><p>Some sites block framing entirely, so I am curious how the split view deals with that.</p></div>
+<ul class="actions"><li><a href="#r119">reply</a></li><li><a href="#s119">share</a></li><li><a href="#x119">report</a></li><li><a href="#c119">permalink</a></li></ul>
+</div>
+<div class="c" id="c120" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-oldschoolsysadmin">oldschoolsysadmin</a><span class="pts">103 points</span><div class="age"><a href="#c120">5 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I wonder how it compares with the built-in browser translator in terms of quality.</p><p>The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times. Batching too many paragraphs into one request makes the first screen noticeably slower.</p></div>
+<ul class="actions"><li><a href="#r120">reply</a></li><li><a href="#s120">share</a></li><li><a href="#x120">report</a></li><li><a href="#c120">permalink</a></li></ul>
+</div>
+<div class="c" id="c121" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-bitflip">bitflip</a><span class="pts">95 points</span><div class="age"><a href="#c121">5 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>This is exactly what I wanted when reading papers in a language I only half understand.</p><p>Machine translation has become good enough that I read most foreign news this way now. If it can keep the code blocks untouched, I would use it for documentation every day. I tried something similar last year and the hardest part was keeping both versions aligned while scrolling.</p><p>Keep the original on the left and the translation on the right, it just matches how people read. Latency matters more than people think; if the translation lags behind my scrolling I stop using it. Great work, the demo is impressively smooth on my old laptop.</p></div>
+<ul class="actions"><li><a href="#r121">reply</a></li><li><a href="#s121">share</a></li><li><a href="#x121">report</a></li><li><a href="#c121">permalink</a></li></ul>
+</div>
+<div class="c" id="c122" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-deadlock_dan">deadlock_dan</a><span class="pts">42 points</span><div class="age"><a href="#c122">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>This.</p></div>
+<ul class="actions"><li><a href="#r122">reply</a></li><li><a href="#s122">share</a></li><li><a href="#x122">report</a></li><li><a href="#c122">permalink</a></li></ul>
+</div>
+<div class="c" id="c123" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-throwaway_8812">throwaway_8812</a><span class="pts">102 points</span><div class="age"><a href="#c123">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times. The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times.</p><p>One thing I would love is a way to pin the glossary for technical terms so they are translated consistently. I am skeptical that small models keep the formatting tags intact under load.</p><p>This thread is a good stress test, ironically.</p></div>
+<ul class="actions"><li><a href="#r123">reply</a></li><li><a href="#s123">share</a></li><li><a href="#x123">report</a></li><li><a href="#c123">permalink</a></li></ul>
+</div>
+<div class="c" id="c124" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-deadlock_dan">deadlock_dan</a><span class="pts">96 points</span><div class="age"><a href="#c124">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>+1, would love this.</p></div>
+<ul class="actions"><li><a href="#r124">reply</a></li><li><a href="#s124">share</a></li><li><a href="#x124">report</a></li><li><a href="#c124">permalink</a></li></ul>
+</div>
+<div class="c" id="c125" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-quietbyte">quietbyte</a><span class="pts">101 points</span><div class="age"><a href="#c125">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>You can probably dedupe identical strings before sending them, which would help a lot on forums. Somebody should benchmark the token usage of these tools; my guess is most of it is wasted.</p></div>
+<ul class="actions"><li><a href="#r125">reply</a></li><li><a href="#s125">share</a></li><li><a href="#x125">report</a></li><li><a href="#c125">permalink</a></li></ul>
+</div>
+<div class="c" id="c126" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-throwaway_8812">throwaway_8812</a><span class="pts">120 points</span><div class="age"><a href="#c126">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times. This thread is a good stress test, ironically. How does it handle inline links and code? Most tools I have used just flatten everything into plain text.</p><p>For long articles the scroll sync is the killer feature; everything else is a nice bonus.</p><p>The real problem is cost: translating every page in full burns tokens on content nobody reads. For long articles the scroll sync is the killer feature; everything else is a nice bonus. Please add a keyboard shortcut to toggle the split; reaching for the mouse breaks my reading flow.</p></div>
+<ul class="actions"><li><a href="#r126">reply</a></li><li><a href="#s126">share</a></li><li><a href="#x126">report</a></li><li><a href="#c126">permalink</a></li></ul>
+</div>
+<div class="c" id="c127" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-mkb_dev">mkb_dev</a><span class="pts">47 points</span><div class="age"><a href="#c127">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders. Batching too many paragraphs into one request makes the first screen noticeably slower. Great work, the demo is impressively smooth on my old laptop.</p><p>Keep the original on the left and the translation on the right, it just matches how people read.</p><p>Translating only what is on screen seems like a clever trade-off between speed and cost. Side-by-side view is underrated for language learners, because you can glance at the original when something sounds off. I tried something similar last year and the hardest part was keeping both versions aligned while scrolling.</p></div>
+<ul class="actions"><li><a href="#r127">reply</a></li><li><a href="#s127">share</a></li><li><a href="#x127">report</a></li><li><a href="#c127">permalink</a></li></ul>
+</div>
+<div class="c" id="c128" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-tabs_not_spaces">tabs_not_spaces</a><span class="pts">36 points</span><div class="age"><a href="#c128">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>You can probably dedupe identical strings before sending them, which would help a lot on forums. Latency matters more than people think; if the translation lags behind my scrolling I stop using it. I tried something similar last year and the hardest part was keeping both versions aligned while scrolling.</p><p>The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times. Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p></div>
+<ul class="actions"><li><a href="#r128">reply</a></li><li><a href="#s128">share</a></li><li><a href="#x128">report</a></li><li><a href="#c128">permalink</a></li></ul>
+</div>
+<div class="c" id="c129" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-pixelpusher">pixelpusher</a><span class="pts">32 points</span><div class="age"><a href="#c129">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Side-by-side view is underrated for language learners, because you can glance at the original when something sounds off.</p></div>
+<ul class="actions"><li><a href="#r129">reply</a></li><li><a href="#s129">share</a></li><li><a href="#x129">report</a></li><li><a href="#c129">permalink</a></li></ul>
+</div>
+<div class="c" id="c130" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-zero_cost">zero_cost</a><span class="pts">96 points</span><div class="age"><a href="#c130">5 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>If it can keep the code blocks untouched, I would use it for documentation every day.</p><p>Machine translation has become good enough that I read most foreign news this way now. If it can keep the code blocks untouched, I would use it for documentation every day.</p><p>Honestly, I would pay for this if it worked reliably on single-page apps.</p></div>
+<ul class="actions"><li><a href="#r130">reply</a></li><li><a href="#s130">share</a></li><li><a href="#x130">report</a></li><li><a href="#c130">permalink</a></li></ul>
+</div>
+<div class="c" id="c131" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-mkb_dev">mkb_dev</a><span class="pts">51 points</span><div class="age"><a href="#c131">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Thanks for sharing!</p></div>
+<ul class="actions"><li><a href="#r131">reply</a></li><li><a href="#s131">share</a></li><li><a href="#x131">report</a></li><li><a href="#c131">permalink</a></li></ul>
+</div>
+<div class="c" id="c132" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-ferrous_oxide">ferrous_oxide</a><span class="pts">112 points</span><div class="age"><a href="#c132">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Thanks for sharing!</p></div>
+<ul class="actions"><li><a href="#r132">reply</a></li><li><a href="#s132">share</a></li><li><a href="#x132">report</a></li><li><a href="#c132">permalink</a></li></ul>
+</div>
+<div class="c" id="c133" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-gopher_jane">gopher_jane</a><span class="pts">102 points</span><div class="age"><a href="#c133">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Side-by-side view is underrated for language learners, because you can glance at the original when something sounds off.</p></div>
+<ul class="actions"><li><a href="#r133">reply</a></li><li><a href="#s133">share</a></li><li><a href="#x133">report</a></li><li><a href="#c133">permalink</a></li></ul>
+</div>
+<div class="c" id="c134" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-deadlock_dan">deadlock_dan</a><span class="pts">120 points</span><div class="age"><a href="#c134">1 hour ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Back in the day we used bilingual printed editions for exactly the same reason. Keep the original on the left and the translation on the right, it just matches how people read.</p><p>Great work, the demo is impressively smooth on my old laptop. One thing I would love is a way to pin the glossary for technical terms so they are translated consistently.</p></div>
+<ul class="actions"><li><a href="#r134">reply</a></li><li><a href="#s134">share</a></li><li><a href="#x134">report</a></li><li><a href="#c134">permalink</a></li></ul>
+</div>
+<div class="c" id="c135" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-ferrous_oxide">ferrous_oxide</a><span class="pts">114 points</span><div class="age"><a href="#c135">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The pricing difference between cached and uncached input is large enough to design around. I am skeptical that small models keep the formatting tags intact under load. Batching too many paragraphs into one request makes the first screen noticeably slower.</p><p>How does it handle inline links and code? Most tools I have used just flatten everything into plain text. The model occasionally returns fewer items than it was given, so the client must be defensive. Somebody should benchmark the token usage of these tools; my guess is most of it is wasted.</p><p>I wonder how it compares with the built-in browser translator in terms of quality.</p></div>
+<ul class="actions"><li><a href="#r135">reply</a></li><li><a href="#s135">share</a></li><li><a href="#x135">report</a></li><li><a href="#c135">permalink</a></li></ul>
+</div>
+<div class="c" id="c136" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-kernelpanic">kernelpanic</a><span class="pts">8 points</span><div class="age"><a href="#c136">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I tried something similar last year and the hardest part was keeping both versions aligned while scrolling.</p><p>I am skeptical that small models keep the formatting tags intact under load. The comment threads are the worst case, since half of the text is the same buttons repeated a hundred times.</p><p>Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same. The model occasionally returns fewer items than it was given, so the client must be defensive. Is there a self-hosted option? I already run a local model for this kind of thing.</p></div>
+<ul class="actions"><li><a href="#r136">reply</a></li><li><a href="#s136">share</a></li><li><a href="#x136">report</a></li><li><a href="#c136">permalink</a></li></ul>
+</div>
+<div class="c" id="c137" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-gopher_jane">gopher_jane</a><span class="pts">75 points</span><div class="age"><a href="#c137">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Please add a keyboard shortcut to toggle the split; reaching for the mouse breaks my reading flow.</p></div>
+<ul class="actions"><li><a href="#r137">reply</a></li><li><a href="#s137">share</a></li><li><a href="#x137">report</a></li><li><a href="#c137">permalink</a></li></ul>
+</div>
+<div class="c" id="c138" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-greybeard77">greybeard77</a><span class="pts">67 points</span><div class="age"><a href="#c138">4 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>This is exactly what I wanted when reading papers in a language I only half understand. Latency matters more than people think; if the translation lags behind my scrolling I stop using it.</p></div>
+<ul class="actions"><li><a href="#r138">reply</a></li><li><a href="#s138">share</a></li><li><a href="#x138">report</a></li><li><a href="#c138">permalink</a></li></ul>
+</div>
+<div class="c" id="c139" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-mutable_state">mutable_state</a><span class="pts">21 points</span><div class="age"><a href="#c139">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Somebody should benchmark the token usage of these tools; my guess is most of it is wasted. Machine translation has become good enough that I read most foreign news this way now.</p><p>Honestly, I would pay for this if it worked reliably on single-page apps. Side-by-side view is underrated for language learners, because you can glance at the original when something sounds off.</p><p>How does it handle inline links and code? Most tools I have used just flatten everything into plain text.</p></div>
+<ul class="actions"><li><a href="#r139">reply</a></li><li><a href="#s139">share</a></li><li><a href="#x139">report</a></li><li><a href="#c139">permalink</a></li></ul>
+</div>
+<div class="c" id="c140" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-greybeard77">greybeard77</a><span class="pts">57 points</span><div class="age"><a href="#c140">12 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The extension asked for access to all sites, which is a hard no at my company. Some sites block framing entirely, so I am curious how the split view deals with that.</p></div>
+<ul class="actions"><li><a href="#r140">reply</a></li><li><a href="#s140">share</a></li><li><a href="#x140">report</a></li><li><a href="#c140">permalink</a></li></ul>
+</div>
+<div class="c" id="c141" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-heisenbug">heisenbug</a><span class="pts">81 points</span><div class="age"><a href="#c141">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Keep the original on the left and the translation on the right, it just matches how people read. Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same.</p><p>I tried something similar last year and the hardest part was keeping both versions aligned while scrolling. Machine translation has become good enough that I read most foreign news this way now.</p><p>I tried something similar last year and the hardest part was keeping both versions aligned while scrolling.</p></div>
+<ul class="actions"><li><a href="#r141">reply</a></li><li><a href="#s141">share</a></li><li><a href="#x141">report</a></li><li><a href="#c141">permalink</a></li></ul>
+</div>
+<div class="c" id="c142" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-linker_error">linker_error</a><span class="pts">31 points</span><div class="age"><a href="#c142">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>+1, would love this.</p></div>
+<ul class="actions"><li><a href="#r142">reply</a></li><li><a href="#s142">share</a></li><li><a href="#x142">report</a></li><li><a href="#c142">permalink</a></li></ul>
+</div>
+<div class="c" id="c143" style="margin-left:44px">
+<div class="meta"><a class="user" href="#u-ferrous_oxide">ferrous_oxide</a><span class="pts">3 points</span><div class="age"><a href="#c143">9 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p><p>Machine translation has become good enough that I read most foreign news this way now. I am skeptical that small models keep the formatting tags intact under load.</p></div>
+<ul class="actions"><li><a href="#r143">reply</a></li><li><a href="#s143">share</a></li><li><a href="#x143">report</a></li><li><a href="#c143">permalink</a></li></ul>
+</div>
+<div class="c" id="c144" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-async_amy">async_amy</a><span class="pts">50 points</span><div class="age"><a href="#c144">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>I tried something similar last year and the hardest part was keeping both versions aligned while scrolling. The real problem is cost: translating every page in full burns tokens on content nobody reads.</p><p>I am not convinced that output length scales the way the author claims for Japanese. Keep the original on the left and the translation on the right, it just matches how people read. Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p></div>
+<ul class="actions"><li><a href="#r144">reply</a></li><li><a href="#s144">share</a></li><li><a href="#x144">report</a></li><li><a href="#c144">permalink</a></li></ul>
+</div>
+<div class="c" id="c145" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-rubberduck">rubberduck</a><span class="pts">95 points</span><div class="age"><a href="#c145">2 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>The model occasionally returns fewer items than it was given, so the client must be defensive. Streaming the result paragraph by paragraph makes it feel much faster even if the total time is the same. For long articles the scroll sync is the killer feature; everything else is a nice bonus.</p><p>The model occasionally returns fewer items than it was given, so the client must be defensive. Translating only what is on screen seems like a clever trade-off between speed and cost. This is exactly what I wanted when reading papers in a language I only half understand.</p><p>I tried something similar last year and the hardest part was keeping both versions aligned while scrolling. Back in the day we used bilingual printed editions for exactly the same reason.</p></div>
+<ul class="actions"><li><a href="#r145">reply</a></li><li><a href="#s145">share</a></li><li><a href="#x145">report</a></li><li><a href="#c145">permalink</a></li></ul>
+</div>
+<div class="c" id="c146" style="margin-left:22px">
+<div class="meta"><a class="user" href="#u-gopher_jane">gopher_jane</a><span class="pts">107 points</span><div class="age"><a href="#c146">3 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>[deleted]</p></div>
+<ul class="actions"><li><a href="#r146">reply</a></li><li><a href="#s146">share</a></li><li><a href="#x146">report</a></li><li><a href="#c146">permalink</a></li></ul>
+</div>
+<div class="c" id="c147" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-off_by_one">off_by_one</a><span class="pts">74 points</span><div class="age"><a href="#c147">7 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders. Prompt caching changed the economics for us; the system prompt is basically free after the first request.</p><p>This is exactly what I wanted when reading papers in a language I only half understand. Somebody should benchmark the token usage of these tools; my guess is most of it is wasted. Please add a keyboard shortcut to toggle the split; reaching for the mouse breaks my reading flow.</p></div>
+<ul class="actions"><li><a href="#r147">reply</a></li><li><a href="#s147">share</a></li><li><a href="#x147">report</a></li><li><a href="#c147">permalink</a></li></ul>
+</div>
+<div class="c" id="c148" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-rubberduck">rubberduck</a><span class="pts">16 points</span><div class="age"><a href="#c148">5 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Please add a keyboard shortcut to toggle the split; reaching for the mouse breaks my reading flow. Caching by paragraph hash is the obvious move, but it breaks as soon as the site re-renders.</p></div>
+<ul class="actions"><li><a href="#r148">reply</a></li><li><a href="#s148">share</a></li><li><a href="#x148">report</a></li><li><a href="#c148">permalink</a></li></ul>
+</div>
+<div class="c" id="c149" style="margin-left:0px">
+<div class="meta"><a class="user" href="#u-nullpointer_ex">nullpointer_ex</a><span class="pts">20 points</span><div class="age"><a href="#c149">5 hours ago</a></div><span class="toggle">[–]</span></div>
+<div class="body"><p>Thanks for sharing!</p></div>
+<ul class="actions"><li><a href="#r149">reply</a></li><li><a href="#s149">share</a></li><li><a href="#x149">report</a></li><li><a href="#c149">permalink</a></li></ul>
+</div>
+<footer>Guidelines | FAQ | Lists | API | Security | Legal | Contact</footer>
+</main></body></html>
