@@ -6,9 +6,9 @@
 
 Duet-Translator is an Edge / Chrome extension that shows a web page and its translation **side by side**, and keeps the two panes scrolling **in sync, paragraph by paragraph**. You bring the translation engine: a self-hosted LLM (vLLM, SGLang, Ollama…), a hosted API such as DeepSeek, or DeepL.
 
-![Duet-Translator: English Wikipedia on the left, Chinese translation on the right](docs/images/screenshot-en.png)
+![Duet-Translator demo: the split view opens, the translation streams in, both panes scroll in sync, hovering highlights the matching paragraph, and a revisit fills instantly from the cache](docs/images/demo.gif)
 
-<sub>Screenshot: the English Wikipedia article "Typography" (CC BY-SA), translated by DeepSeek V4.1 Flash. The highlighted paragraph is the same one on both sides.</sub>
+<sub>Demo recording: an original sample article; the translations were written in advance and replayed by a local engine so the recording is reproducible.</sub>
 
 ## Features
 
@@ -21,6 +21,10 @@ Duet-Translator is an Edge / Chrome extension that shows a web page and its tran
 - **Bring your own engine.** Any OpenAI-compatible endpoint (vLLM, SGLang, Ollama, LM Studio, llama.cpp, DeepSeek, OpenRouter, Qwen/DashScope…) or DeepL.
 - **Hover to compare.** Hovering a paragraph highlights its counterpart on the other side.
 - **Chinese / English interface**, switchable at any time.
+
+![Duet-Translator: English Wikipedia on the left, Chinese translation on the right](docs/images/screenshot-en.png)
+
+<sub>Screenshot: the English Wikipedia article "Typography" (CC BY-SA), translated by DeepSeek V4.1 Flash. The highlighted paragraph is the same one on both sides.</sub>
 
 ## Install
 

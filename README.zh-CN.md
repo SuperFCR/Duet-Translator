@@ -6,9 +6,9 @@
 
 Duet-Translator 是一个 Edge / Chrome 扩展：左边原网页，右边译文网页，**按段落对齐、同步滚动**。翻译引擎由你决定：自部署大模型（vLLM、SGLang、Ollama…）、DeepSeek 等在线 API，或 DeepL。
 
-![Duet-Translator：左侧英文维基百科，右侧中文译文](docs/images/screenshot-zh.png)
+![Duet-Translator 演示：打开对读、译文流式出现、两侧同步滚动、悬停高亮对应段落、再次打开时从缓存瞬间显示](docs/images/demo.gif)
 
-<sub>截图：英文维基百科 "Typography" 条目（CC BY-SA），由 DeepSeek V4.1 Flash 翻译；高亮的是左右对应的同一段落。</sub>
+<sub>演示录屏：自写的示例文章，译文事先写好、由本地引擎回放，便于复现录制。</sub>
 
 ## 特点
 
@@ -21,6 +21,10 @@ Duet-Translator 是一个 Edge / Chrome 扩展：左边原网页，右边译文�
 - **引擎自选**：任何 OpenAI 兼容接口（vLLM、SGLang、Ollama、LM Studio、llama.cpp、DeepSeek、OpenRouter、通义 DashScope…）或 DeepL。
 - **悬停对照**：鼠标停在一段上，另一侧对应段落同时高亮。
 - **中 / 英文界面**随时切换。
+
+![Duet-Translator：左侧英文维基百科，右侧中文译文](docs/images/screenshot-zh.png)
+
+<sub>截图：英文维基百科 "Typography" 条目（CC BY-SA），由 DeepSeek V4.1 Flash 翻译；高亮的是左右对应的同一段落。</sub>
 
 ## 安装
 
