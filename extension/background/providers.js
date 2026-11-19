@@ -93,21 +93,89 @@
     return `You are a professional translator. Translate the user's text from ${src} into ${tgt}.\nRules:\n- Output ONLY the translation, nothing else.\n` + common;
   }
 
+  /** 粗估 token 数：拉丁字母约 0.3 token/字符，中日韩约 0.6 token/字符（DeepSeek 官方经验值） */
+  function estTokens(s) {
+    const str = String(s || '');
+    const cjk = (str.match(/[　-鿿가-힯豈-﫿]/g) || []).length;
+    return Math.ceil(cjk * 0.6 + (str.length - cjk) * 0.3);
+  }
+
+  // 有些 OpenAI 兼容服务不认 stream_options / max_tokens（返回 400）：记下来，之后对该引擎不再发送。
+  // 记在 chrome.storage.session：MV3 的 SW 空闲 30 秒就被回收，只放内存的话几乎每次阅读都要再失败一次
+  const unsupported = new Map();   // baseUrl -> Set(param)
+  const unsup = (cfg) => unsupported.get(String(cfg.baseUrl || '')) || new Set();
+  const sess = root.chrome && chrome.storage && chrome.storage.session;
+  const unsupLoaded = sess ? sess.get('unsupParams').then((o) => {
+    for (const [k, list] of Object.entries((o && o.unsupParams) || {})) {
+      const set = unsupported.get(k) || new Set();
+      list.forEach((x) => set.add(x));
+      unsupported.set(k, set);
+    }
+  }).catch(() => {}) : Promise.resolve();
+  function markUnsupported(cfg, param) {
+    const k = String(cfg.baseUrl || '');
+    if (!unsupported.has(k)) unsupported.set(k, new Set());
+    unsupported.get(k).add(param);
+    if (sess) {
+      const all = {};
+      for (const [b, set] of unsupported) all[b] = Array.from(set);
+      sess.set({ unsupParams: all }).catch(() => {});
+    }
+  }
+
+  /**
+   * 上下文窗口预算（cfg.contextTokens，可选；自部署小模型用）：
+   *   一次请求 ≈ 提示词 + 原文 + 译文（中文约为原文 token 的 1～1.5 倍）。超出预算的批次先对半拆开再发，
+   *   max_tokens 也不会超过剩余空间 —— 保证请求放得进模型的上下文窗口，而不是发出去被 400 拒掉再重试。
+   */
+  const ctxBudget = (cfg) => (Number(cfg.contextTokens) > 0 ? Number(cfg.contextTokens) : 0);
+  function needTokens(system, user) {
+    const inTok = estTokens(system) + estTokens(user) + 16;
+    return inTok + Math.ceil(estTokens(user) * 1.5) + 128;
+  }
+
+  /**
+   * 输出上限：译文长度 ≈ 原文 token 的 1~2 倍，给足余量（含推理模型的思考 token），
+   * 只为防止模型"复读"失控时把钱烧光；用户可用 cfg.maxTokens 指定（0 = 不发送）。
+   */
+  function autoMaxTokens(cfg, user) {
+    if (cfg.maxTokens === 0 || cfg.maxTokens === '0') return 0;
+    if (Number(cfg.maxTokens) > 0) return Number(cfg.maxTokens);
+    return Math.min(8192, Math.max(1024, Math.ceil(estTokens(user) * 2.5) + 512));
+  }
+
   function buildOpenaiRequest(cfg, system, user, stream) {
     let extra = {};
     if (cfg.extraBody && String(cfg.extraBody).trim()) {
       try { extra = JSON.parse(cfg.extraBody); } catch (_) { throw new Error(PT.t('err.extraBody')); }
     }
-    const body = Object.assign({
+    const body = {
       model: cfg.model,
       messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
       stream,
-    }, extra);
+    };
+    const bad = unsup(cfg);
+    // 流式时请服务端在最后一块附上 usage（输入 / 命中缓存 / 输出 token），用于显示真实用量
+    if (stream && !bad.has('stream_options')) body.stream_options = { include_usage: true };
+    let mt = bad.has('max_tokens') ? 0 : autoMaxTokens(cfg, user);
+    const budget = ctxBudget(cfg);
+    if (mt && budget) mt = Math.max(256, Math.min(mt, budget - (estTokens(system) + estTokens(user) + 16) - 64));
+    if (mt) body.max_tokens = mt;
+    Object.assign(body, extra);
     if (cfg.temperature !== '' && cfg.temperature != null && !Number.isNaN(+cfg.temperature)) body.temperature = +cfg.temperature;
     const headers = { 'Content-Type': 'application/json' };
     if (cfg.apiKey) headers.Authorization = `Bearer ${cfg.apiKey}`;
     const url = String(cfg.baseUrl || '').replace(/\/+$/, '') + '/chat/completions';
     return { url, init: { method: 'POST', headers, body: JSON.stringify(body) }, stream: !!body.stream };
+  }
+
+  /** 各家 usage 字段归一：DeepSeek 用 prompt_cache_hit_tokens，OpenAI / 多数兼容服务用 prompt_tokens_details.cached_tokens */
+  function normUsage(u) {
+    if (!u || typeof u !== 'object') return null;
+    const inTok = +u.prompt_tokens || 0, outTok = +u.completion_tokens || 0;
+    let cached = +u.prompt_cache_hit_tokens || 0;
+    if (!cached && u.prompt_tokens_details) cached = +u.prompt_tokens_details.cached_tokens || 0;
+    return { inTok, cachedTok: cached, outTok };
   }
 
   /**
@@ -116,6 +184,20 @@
    * 流式下超时按"多久没收到新数据"计算。
    */
   async function openaiRequestOnce(cfg, ctx, system, user, onDelta) {
+    await unsupLoaded;
+    for (let k = 0; ; k++) {
+      try { return await openaiRequestRaw(cfg, ctx, system, user, onDelta); } catch (e) {
+        // 400 且报错里点名了 stream_options / max_tokens / 上下文长度：去掉该参数重试（每个参数只试一次）
+        const m = e instanceof HttpError && e.status === 400 ? e.message : '';
+        const bad = unsup(cfg);
+        if (k < 2 && /stream_options|include_usage/i.test(m) && !bad.has('stream_options')) { markUnsupported(cfg, 'stream_options'); continue; }
+        if (k < 2 && /max_tokens|max_completion|context length|maximum context/i.test(m) && !bad.has('max_tokens')) { markUnsupported(cfg, 'max_tokens'); continue; }
+        throw e;
+      }
+    }
+  }
+
+  async function openaiRequestRaw(cfg, ctx, system, user, onDelta) {
     const { url, init, stream } = buildOpenaiRequest(cfg, system, user, !!onDelta && cfg.stream !== false);
     const timeoutMs = cfg.timeoutMs || 90000;
     const ac = new AbortController();
@@ -127,6 +209,7 @@
       if (outer.aborted) throw outer.reason || new Error('cancelled');
       outer.addEventListener('abort', onAbort, { once: true });
     }
+    let streaming = false, lastUsage = null, full = '';
     arm();
     try {
       const res = await fetch(url, Object.assign({}, init, { signal: ac.signal }));
@@ -137,13 +220,15 @@
         let json;
         try { json = JSON.parse(text); } catch (_) { throw new HttpError(0, PT.t('err.notJson', { body: text.slice(0, 200) })); }
         const msg = json && json.choices && json.choices[0] && json.choices[0].message;
+        if (ctx.onUsage) ctx.onUsage(normUsage(json && json.usage) || estUsage(system, user, msg && msg.content));
         if (!msg || typeof msg.content !== 'string') throw new Error(PT.t('err.noContent'));
         if (onDelta) onDelta(msg.content);
         return msg.content;
       }
       const reader = res.body.getReader();
       const dec = new TextDecoder();
-      let buf = '', full = '';
+      let buf = '';
+      streaming = true;
       for (;;) {
         const { value, done } = await reader.read();
         if (done) break;
@@ -159,6 +244,7 @@
           let j;
           try { j = JSON.parse(data); } catch (_) { continue; }
           if (j.error) throw new HttpError(0, String(j.error.message || JSON.stringify(j.error)).slice(0, 300));
+          if (j.usage) lastUsage = normUsage(j.usage);   // 有的服务每块都带累计值：只取最后一次
           const ch = j.choices && j.choices[0];
           const piece = ch && ((ch.delta && ch.delta.content) || (ch.message && ch.message.content));
           if (piece) { full += piece; onDelta(piece); }
@@ -171,7 +257,13 @@
     } finally {
       clearTimeout(timer);
       if (outer) outer.removeEventListener('abort', onAbort);
+      // 流式结束（含被取消）：上报用量。被取消时服务端不再返回 usage，按已收到的输出估算（已生成的部分照样计费）
+      if (streaming && ctx.onUsage) ctx.onUsage(lastUsage || estUsage(system, user, full, true));
     }
+  }
+
+  function estUsage(system, user, out, partial) {
+    return { inTok: estTokens(system) + estTokens(user) + 8, cachedTok: 0, outTok: estTokens(out), est: true, partial: !!partial };
   }
 
   /** makeOnDelta：每次（重试）尝试都新建一个增量处理器 */
@@ -229,6 +321,14 @@
       return [out];
     }
     const n = segments.length;
+    // 放不进上下文窗口：先拆成两半（各自再检查），不发注定失败的请求
+    if (ctxBudget(cfg) && needTokens(sysPrompt(cfg, ctx, true), JSON.stringify(segments)) > ctxBudget(cfg)) {
+      const mid = Math.ceil(n / 2);
+      const sub = (off) => (onItem ? Object.assign({}, ctx, { onItem: (k, v) => onItem(k + off, v) }) : ctx);
+      const a = await openaiTranslate(segments.slice(0, mid), cfg, sub(0));
+      const b = await openaiTranslate(segments.slice(mid), cfg, sub(mid));
+      return a.concat(b);
+    }
     const out = await openaiCall(cfg, ctx, sysPrompt(cfg, ctx, true), JSON.stringify(segments),
       onItem ? () => { const p = arrayStreamParser(onItem, n); return (piece) => p.push(piece); } : null);
     const arr = parseArray(out, n);
@@ -288,5 +388,5 @@
     deepl: { translate: deeplTranslate },
     mock: { translate: mockTranslate },
   };
-  PT.providerUtil = { parseArray, cleanLLM, sysPrompt, arrayStreamParser };
+  PT.providerUtil = { parseArray, cleanLLM, sysPrompt, arrayStreamParser, estTokens, normUsage, autoMaxTokens, needTokens };
 })(globalThis);

@@ -121,7 +121,7 @@
   }
 
   /* ----------------------------- 滚动 ----------------------------- */
-  let lastInputTs = 0, pointerDown = false, lastInputPost = 0;
+  let lastInputTs = -1e9, pointerDown = false, lastInputPost = -1e9;   // 同上：不能用 0（新 iframe 的 now() 从 0 起）
   const onInput = (e) => {
     lastInputTs = now();
     if (e.type === 'pointerdown' || e.type === 'mousedown') pointerDown = true;
@@ -195,7 +195,7 @@
           if (cur !== u.applied) {
             u.rewrites = (u.rewrites || 0) + 1;
             const mixed = !!u.applied && (cur.includes(u.applied) || u.applied.includes(cur));
-            if (!mixed && u.rewrites <= MAX_REWRITES) { u.tstate = ''; u.text = cur; changed = true; }
+            if (!mixed && u.rewrites <= MAX_REWRITES) { u.tstate = ''; u.cprobed = false; u.text = cur; changed = true; }
             else u.applied = cur;   // 接受页面的改写，不再追
           }
         }
@@ -313,10 +313,16 @@
   //  · 已发出但用户已经划远的请求会被取消（服务端停止生成，省输出 token）
   //  · 已是目标语言的段落、隐藏元素不发送；缓存命中不计费
   const IDLE_MS = 300;
+  const MIN_BATCH = 300;   // 单批最少字符：再小的话请求固定开销（提示词、首 token 延迟）占比太高
   let lastError = '', lastErrorCode = '';
   let translateAll = false;
-  let pumpTimer = 0, idleTimer = 0, lastScrollTs = 0;
+  // lastScrollTs 初值必须是"很久以前"：performance.now() 在新 iframe 里从 0 起算，初值 0 会让开头 300ms 被当成"正在滚动"，
+  // 首次翻译被推迟到 1.5s 的兜底定时器（实测首屏晚 ~1.4s）
+  let pumpTimer = 0, idleTimer = 0, lastScrollTs = -1e9;
   let batchSeq = 0, sentChars = 0, cancelled = 0;
+  // 用量：缓存命中段数（本地，免费）、去重省掉的段数、服务端返回的 token（含命中服务端前缀缓存的部分）
+  let cacheHits = 0, dedupSaved = 0;
+  const usage = { req: 0, inTok: 0, cachedTok: 0, outTok: 0, est: false };
   const inflight = new Map();          // id -> { id, batch, cancelled }
   let origLang = '';
 
@@ -328,6 +334,46 @@
     lastScrollTs = now();
     clearTimeout(idleTimer);
     idleTimer = setTimeout(() => { cancelFar(); pump(); }, IDLE_MS + 20);
+    // 滚动中也查本地缓存：命中是免费的，快速划过看过的内容也能立刻显示译文
+    if (now() - lastProbeTs > 250) probeCache('wide');
+  }
+
+  /* 缓存优先：还没查过缓存的段落先只查本地缓存（不发网络请求），命中直接回填。
+   *   near：覆盖翻译窗口（视口上 1.5 屏 ~ 下 2.5 屏），翻译前等它返回（很小，几毫秒）
+   *   wide：视口上 3 屏 ~ 下 4 屏，后台查，不挡住网络请求；滚动中也查 */
+  const PROBE = { near: [1.5, 2.5, 120], wide: [3, 4, 300] };
+  let lastProbeTs = 0;
+  function probeCache(kind) {
+    if (ROLE !== 'R' || !settings) return null;
+    if (kind === 'wide') lastProbeTs = now();
+    const [above, below, max] = PROBE[kind];
+    const s = sstate();
+    const lo = s.t - s.vh * above, hi = s.t + s.vh * below;
+    const items = [];
+    for (const u of seg.units) {
+      if (!u.translatable || u.tstate || u.cprobed || Number.isNaN(u.y)) continue;
+      if (!u.fixed && (u.y + u.h < lo || u.y > hi)) continue;
+      if (alreadyTarget(u)) { u.tstate = 'skip'; continue; }
+      const ser = seg.serialize(u);
+      if (!ser.text || !/\p{L}/u.test(ser.text)) { u.tstate = 'skip'; continue; }
+      u.cprobed = true;
+      items.push({ u, ser });
+      if (items.length >= max) break;
+    }
+    if (!items.length) return null;
+    return chrome.runtime.sendMessage({
+      type: 'translate', cacheOnly: true,
+      segments: items.map((it) => it.ser.text),
+      page: { title: doc.title, url: location.href },
+    }).then((res) => {
+      if (!res || !Array.isArray(res.results)) return;
+      let n = 0;
+      items.forEach((it, i) => {
+        const v = res.results[i];
+        if (typeof v === 'string' && !it.u.tstate && applyItem(it, v)) n++;
+      });
+      if (n) { cacheHits += n; lastLayoutTs = now(); scheduleAnchors(); postStatus(); }
+    }).catch(() => {});
   }
   function pumpSoon() {
     if (pumpTimer) return;
@@ -373,17 +419,19 @@
     const out = [];
     for (const u of seg.units) {
       if (!u.translatable || u.tstate || Number.isNaN(u.y)) continue;   // NaN = 不可见 / 未测量
-      let dist;
+      let dist, vis;
       if (u.fixed) {
         // 固定/吸顶元素（导航、目录、工具栏）：只翻当前可见的，且排在视口正文之后
-        const visible = u.vy + u.h > 0 && u.vy < s.vh;
-        if (!visible && !translateAll) continue;
-        dist = visible ? s.vh * 0.75 : s.vh * 50;
+        vis = u.vy + u.h > 0 && u.vy < s.vh;
+        if (!vis && !translateAll) continue;
+        dist = vis ? s.vh * 0.75 : s.vh * 50;
       } else {
         if (u.y + u.h < lo || u.y > hi) continue;
         dist = u.y < s.t ? (s.t - u.y) * 1.5 : u.y - s.t;
+        // 第一波（"可见"）带上上方 0.25 屏 / 下方 0.1 屏余量：跟随方对齐后视口会挪动几十～上百 px
+        vis = u.y < s.t + s.vh * 1.1 && u.y + u.h > s.t - s.vh * 0.25;
       }
-      out.push([dist, u]);
+      out.push([dist, u, vis]);
     }
     out.sort((a, b) => a[0] - b[0]);
     return out;
@@ -392,32 +440,53 @@
   function pump() {
     if (ROLE !== 'R' || !settings) return;
     if (isScrolling() && !translateAll) { postStatus(); return; }      // 滚动中不发请求
+    const pr = probeCache('near');
+    if (pr) { pr.then(() => pump()); return; }                              // 先用免费的本地缓存，再决定发什么
+    probeCache('wide');                                                 // 更远处的缓存后台查，不挡请求
     const cfg = providerCfg();
     const conc = Math.max(1, Math.min(cfg.concurrency || 3, 8));
     if (inflight.size >= conc) { postStatus(); return; }
     const items = [];
-    let total = 0;
-    for (const [, u] of candidates(sstate())) {
+    const lead = new Map();   // 同一原文在本页出现多次（"回复""分享"、重复的导航）：只发一次，译文复制给其余段落
+    for (const [, u, vis] of candidates(sstate())) {
       if (alreadyTarget(u)) { u.tstate = 'skip'; continue; }
       const ser = seg.serialize(u);
       if (!ser.text || !/\p{L}/u.test(ser.text)) { u.tstate = 'skip'; continue; }
-      items.push({ u, ser });
-      total += ser.text.length;
+      const first = lead.get(ser.text);
+      if (first) { (first.followers || (first.followers = [])).push({ u, ser }); continue; }
+      const it = { u, ser, vis };
+      lead.set(ser.text, it);
+      items.push(it);
     }
-    // 把窗口内的文字均分给空闲并发槽：首屏结果出来得更快，批次也不会超过引擎上限
-    const free = conc - inflight.size;
-    const maxChars = Math.min(cfg.batchChars || 2400, Math.max(300, Math.ceil(total / free)));
+    // 可见区优先：先把屏幕上的段落均分给所有空闲并发槽（每路流更短 → 整屏更快翻完），
+    // 预取部分等有空槽再发。批次内保持文档顺序的相邻段落，模型有上下文。
     const maxN = cfg.batchSize || 24;
-    let i = 0;
-    while (inflight.size < conc && i < items.length) {
-      const batch = [];
-      let chars = 0;
-      while (i < items.length) {
-        const it = items[i];
-        if (batch.length && (chars + it.ser.text.length > maxChars || batch.length >= maxN)) break;
-        batch.push(it); chars += it.ser.text.length; i++;
+    const maxC = cfg.batchChars || 2400;
+    const send = (list, visible) => {
+      let left = list.reduce((n, it) => n + it.ser.text.length, 0);
+      let i = 0;
+      while (inflight.size < conc && i < list.length) {
+        // 可见波：每批目标 = 剩余字数 / 剩余空槽，最后一个空槽兜底拿走剩下的（只受引擎上限约束），屏幕上的段落一次发完；
+        // 预取波：按总并发数切小块，空槽有几个发几块，其余等下一个空槽 —— 不会把整片预取区塞进一路慢吞吞的长流
+        const slots = conc - inflight.size;
+        const target = visible
+          ? (slots <= 1 ? maxC : Math.min(maxC, Math.max(MIN_BATCH, Math.ceil(left / slots))))
+          : Math.min(maxC, Math.max(MIN_BATCH, Math.ceil(left / conc)));
+        const batch = [];
+        let chars = 0;
+        while (i < list.length) {
+          const len = list[i].ser.text.length;
+          if (batch.length && (batch.length >= maxN || chars + len > maxC || chars + len / 2 > target)) break;
+          batch.push(list[i]); chars += len; i++;
+        }
+        left -= chars;
+        startBatch(batch);
       }
-      startBatch(batch);
+    };
+    if (translateAll) send(items, true);
+    else {
+      send(items.filter((it) => it.vis), true);
+      send(items.filter((it) => !it.vis), false);
     }
     postStatus();
   }
@@ -425,9 +494,12 @@
   function startBatch(batch) {
     const rec = { id: ++batchSeq, batch, cancelled: false };
     inflight.set(rec.id, rec);
-    for (const it of batch) { it.u.tstate = 'inflight'; setPending(it); }
+    for (const it of batch) {
+      it.u.tstate = 'inflight'; setPending(it);
+      for (const f of it.followers || []) { f.u.tstate = 'inflight'; setPending(f); dedupSaved++; }
+    }
     runBatch(rec).finally(() => {
-      for (const it of batch) clearPending(it);
+      for (const it of batch) { clearPending(it); for (const f of it.followers || []) { clearPending(f); if (f.u.tstate === 'inflight') f.u.tstate = ''; } }
       inflight.delete(rec.id); postStatus(); pumpSoon();
     });
   }
@@ -444,7 +516,9 @@
       rec.cancelled = true;
       inflight.delete(rec.id);
       cancelled++;
-      for (const it of rec.batch) { clearPending(it); if (it.u.tstate === 'inflight') it.u.tstate = ''; }
+      for (const it of rec.batch) {
+        for (const x of [it].concat(it.followers || [])) { clearPending(x); if (x.u.tstate === 'inflight') x.u.tstate = ''; }
+      }
       chrome.runtime.sendMessage({ type: 'translate:cancel', reqId: TOKEN + ':' + rec.id }).catch(() => {});
     }
   }
@@ -476,6 +550,7 @@
     clearPending(it);
     const el = it.ser.container;
     if (first && el && el.animate) el.animate([{ opacity: 0.25 }, { opacity: 1 }], { duration: 280, easing: 'ease-out' });
+    for (const f of it.followers || []) applyItem(f, tr);
     return true;
   }
 
@@ -507,11 +582,15 @@
     if (!res || res.error || !Array.isArray(res.results)) {
       lastError = (res && res.error) || PT.t('err.translate');
       lastErrorCode = (res && res.code) || '';
-      for (const it of batch) if (it.applied == null) it.u.tstate = 'error';
+      for (const it of batch) for (const x of [it].concat(it.followers || [])) if (x.applied == null) x.u.tstate = 'error';
       return;
     }
     lastError = ''; lastErrorCode = '';
     sentChars += res.sentChars || 0;
+    cacheHits += res.cacheHits || 0;
+    dedupSaved += res.dedup || 0;
+    if (res.usage) for (const k of ['req', 'inTok', 'cachedTok', 'outTok']) usage[k] += res.usage[k] || 0;
+    if (res.usage && res.usage.est) usage.est = true;
     batch.forEach((it, i) => {
       if (!applyItem(it, res.results[i]) && it.u.tstate === 'inflight') it.u.tstate = 'error';
     });
@@ -533,11 +612,12 @@
         else if (u.tstate === 'error') err++;
         else if (!u.tstate) { leftN++; leftChars += u.text.length; }
       }
-      post('status', { total, done, err, inflight: inflight.size, error: lastError, errCode: lastErrorCode, sent: sentChars, cancelled, leftN, leftChars });
+      post('status', { total, done, err, inflight: inflight.size, error: lastError, errCode: lastErrorCode, sent: sentChars, cancelled, leftN, leftChars,
+        cacheHits, dedup: dedupSaved, usage });
     }, 200);
   }
   handlers.retry = () => {
-    for (const u of seg.units) if (u.tstate === 'error') u.tstate = '';
+    for (const u of seg.units) { if (u.tstate === 'error') u.tstate = ''; u.cprobed = false; }
     lastError = ''; lastErrorCode = '';
     pump();
   };

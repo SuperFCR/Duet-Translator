@@ -95,6 +95,11 @@
   .brand svg { width: 18px; height: 18px; flex: none; }
   .status { color: #6b7280; min-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
   .status.err { color: #b91c1c; }
+  .meter { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 11px;
+    background: #ecfdf5; color: #047857; font-variant-numeric: tabular-nums; white-space: nowrap; cursor: default; font-size: 12px; }
+  .meter[hidden] { display: none; }
+  .meter b { font-weight: 600; }
+  .meter .sep { width: 1px; height: 12px; background: #a7f3d0; }
   .busy { flex: none; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #93c5fd; border-top-color: #2563eb; animation: spin .8s linear infinite; }
   .busy[hidden] { display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -113,6 +118,7 @@
     <span class="brand">${LOGO_SVG}<span data-i18n="brand"></span></span>
     <span class="busy" id="busy" hidden></span>
     <span class="status" id="status" data-i18n="sh.loading"></span>
+    <span class="meter" id="meter" hidden></span>
     <button id="setkey" class="warn" data-i18n="sh.setKey" hidden></button>
     <select id="lang" data-i18n-title="sh.lang.title">${langOpts}</select>
     <select id="prov" data-i18n-title="sh.prov.title">${provOpts}</select>
@@ -120,6 +126,7 @@
     <select id="hl" data-i18n-title="sh.hl.title"><option value="hover" data-i18n="hl.hover"></option><option value="off" data-i18n="hl.off"></option></select>
     <button id="all" data-i18n-title="sh.all.title" data-i18n="sh.all"></button>
     <button id="retry" data-i18n-title="sh.retry.title" data-i18n="sh.retry" hidden></button>
+    <button id="redo" data-i18n-title="sh.redo.title">↻</button>
     <button id="swap" data-i18n-title="sh.swap.title">⇆</button>
     <button id="opts" data-i18n-title="sh.opts.title">⚙</button>
     <button id="close" data-i18n-title="sh.close.title">✕</button>
@@ -171,6 +178,12 @@
         if (window.confirm(msg)) this.send('R', 'translateAll', {});
       };
       $('retry').onclick = () => this.send('R', 'retry', {});
+      // 重新翻译本页：只清掉本页写入的缓存条目，再重新加载右窗格
+      $('redo').onclick = async () => {
+        if (!window.confirm(PT.t('sh.redo.confirm'))) return;
+        try { await chrome.runtime.sendMessage({ type: 'cache:clear', scope: { page: this.url.R || this.url.L || location.href } }); } catch (_) { /* noop */ }
+        this.reloadR();
+      };
       $('setkey').onclick = () => chrome.runtime.sendMessage({ type: 'openWelcome' });
       $('opts').onclick = () => chrome.runtime.sendMessage({ type: 'openOptions' });
 
@@ -347,6 +360,7 @@
       this.$('busy').hidden = !d.inflight;
       const f = PT.i18n.fmtNum;
       let txt = PT.t('sh.status', { lang: PT.langName(this.settings.targetLang), done: d.done, total: d.total, sent: f(d.sent) });
+      this.renderMeter(d);
       if (d.inflight) txt += PT.t('sh.inflight', { n: d.inflight });
       if (d.err) txt += PT.t('sh.failed', { n: d.err });
       if (d.error) txt += ` · ${d.error}`;
@@ -356,6 +370,32 @@
       const el = this.$('status');
       el.title = txt + '\n' + PT.t('sh.tip', { n: d.leftN, chars: f(d.leftChars), c: d.cancelled }) +
         (this.mapper ? PT.t('sh.anchors', { n: this.mapper.matched }) : '');
+    }
+
+    /** 用量徽章：本页 token（命中服务端前缀缓存的比例）、本地缓存命中段数、估算费用 */
+    renderMeter(d) {
+      const el = this.$('meter');
+      const u = d.usage || {};
+      const tok = (u.inTok || 0) + (u.outTok || 0);
+      if (!tok && !d.cacheHits) { el.hidden = true; return; }
+      const f = PT.i18n.fmtNum;
+      const k = (n) => (n >= 10000 ? (n / 1000).toFixed(0) + 'k' : n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n));
+      const cfg = (this.settings.providers || []).find((p) => p.id === this.settings.activeProviderId) || {};
+      const priced = cfg.priceIn > 0 || cfg.priceOut > 0;
+      const miss = Math.max(0, (u.inTok || 0) - (u.cachedTok || 0));
+      const cost = ((miss * (+cfg.priceIn || 0)) + (u.cachedTok || 0) * (+cfg.priceCached || 0) + (u.outTok || 0) * (+cfg.priceOut || 0)) / 1e6;
+      const money = cost === 0 ? '$0' : cost < 0.001 ? '<$0.001' : '$' + cost.toFixed(cost < 0.1 ? 3 : 2);
+      const hitPct = u.inTok ? Math.round((u.cachedTok || 0) / u.inTok * 100) : 0;
+      const parts = [];
+      if (tok) parts.push(`<span>${PT.t('sh.meter.tok', { n: '<b>' + k(tok) + '</b>' })}</span>`);
+      if (d.cacheHits) parts.push(`<span>${PT.t('sh.meter.hits', { n: '<b>' + f(d.cacheHits) + '</b>' })}</span>`);
+      if (priced && tok) parts.push(`<span><b>${money}</b></span>`);
+      el.innerHTML = parts.join('<span class="sep"></span>');
+      el.title = PT.t('sh.meter.tip', {
+        req: f(u.req || 0), inTok: f(u.inTok || 0), hit: hitPct, outTok: f(u.outTok || 0),
+        hits: f(d.cacheHits || 0), dedup: f(d.dedup || 0), sent: f(d.sent || 0), c: f(d.cancelled || 0),
+      }) + (priced ? '\n' + PT.t('sh.meter.cost', { money }) : '') + (u.est ? '\n' + PT.t('sh.meter.est') : '');
+      el.hidden = false;
     }
 
     /* ------------------------------ 关闭 ------------------------------ */

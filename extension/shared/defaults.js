@@ -17,6 +17,8 @@
     stripFrameHeaders: true,     // 分屏期间对该标签页的子框架移除 X-Frame-Options / CSP
     devMode: false,              // 开发者选项：显示 Mock 演示引擎
     prefetchScreens: 0.5,        // 视口下方预翻译的屏数（0 = 只翻可见区域）；上方固定 0.25 屏
+    cacheMaxMB: 64,              // 本地译文缓存上限（超出按最近访问时间淘汰，高复用条目有第二次机会）
+    cacheTTLDays: 90,            // 超过这么多天没被读过的译文自动过期
     providers: [
       // name 留空 = 显示随界面语言变化的默认名（见 i18n 的 prov.*）
       { id: 'mock', type: 'mock', name: '', latencyMs: 300 },
@@ -24,8 +26,11 @@
         id: 'deepseek', type: 'openai', name: '',
         baseUrl: 'https://api.deepseek.com', apiKey: '', model: 'deepseek-flash',
         // 翻译不需要推理：关闭 thinking，实测延迟 5.1s→1.9s、输出 token 约降到 1/6
+        // 并发 6：服务端前缀缓存让每个请求的固定开销几乎免费，多开几路流 = 整屏翻完更快（基准测试：快速翻找等待 −32%，费用不变）
         temperature: 0.2, extraBody: '{"thinking": {"type": "disabled"}}', systemPrompt: '',
-        batchChars: 1500, batchSize: 20, concurrency: 4, timeoutMs: 90000,
+        batchChars: 1500, batchSize: 20, concurrency: 6, timeoutMs: 90000,
+        // 估算费用用（美元 / 百万 token）：输入未命中 / 输入命中服务端前缀缓存 / 输出。以官方价格页为准，可在设置里改
+        priceIn: 0.14, priceCached: 0.0028, priceOut: 0.28,
       },
       {
         // MiniMax 国内站（platform.minimaxi.com）；国际站 Key 请把地址改成 https://api.minimax.io/v1

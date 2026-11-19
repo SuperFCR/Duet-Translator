@@ -47,7 +47,25 @@
 
   <section>
     <h2 data-i18n="opt.cache"></h2>
-    <div class="row"><span id="cacheInfo">…</span><button id="clearCache" data-i18n="opt.clearCache"></button></div>
+    <p class="hint" data-i18n="opt.cache.hint"></p>
+    <div class="stats" id="cacheStats"></div>
+    <div class="grid">
+      <label data-i18n-title="opt.cacheMaxMB.title"><span data-i18n="opt.cacheMaxMB"></span> <input id="cacheMaxMB" type="number" min="1" max="2048" step="1"></label>
+      <label data-i18n-title="opt.cacheTTL.title"><span data-i18n="opt.cacheTTL"></span> <input id="cacheTTLDays" type="number" min="1" max="3650" step="1"></label>
+    </div>
+    <div class="row">
+      <button id="pruneCache" data-i18n="opt.pruneCache"></button>
+      <button id="clearEngineCache" data-i18n="opt.clearEngineCache"></button>
+      <button id="clearCache" class="danger" data-i18n="opt.clearCache"></button>
+      <span id="cacheInfo" class="muted"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-i18n="opt.usage"></h2>
+    <p class="hint" data-i18n="opt.usage.hint"></p>
+    <div id="usageTable"></div>
+    <div class="row"><button id="resetUsage" data-i18n="opt.resetUsage"></button></div>
   </section>
 
   <div class="savebar"><button id="save" class="primary" data-i18n="opt.save"></button><span id="saved"></span></div>

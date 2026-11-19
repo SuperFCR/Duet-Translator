@@ -17,6 +17,11 @@
       ['batchSize', 'f.batchSize', 'number'],
       ['batchChars', 'f.batchChars', 'number'],
       ['timeoutMs', 'f.timeoutMs', 'number'],
+      ['maxTokens', 'f.maxTokens', 'number', 'auto'],
+      ['contextTokens', 'f.contextTokens', 'number'],
+      ['priceIn', 'f.priceIn', 'number'],
+      ['priceCached', 'f.priceCached', 'number'],
+      ['priceOut', 'f.priceOut', 'number'],
       ['extraBody', 'f.extraBody', 'textarea', '{"chat_template_kwargs": {"enable_thinking": false}}'],
       ['systemPrompt', 'f.systemPrompt', 'textarea'],
     ],
@@ -116,19 +121,63 @@
     document.documentElement.lang = PT.i18n.lang === 'zh' ? 'zh-CN' : 'en';
     document.title = t('opt.title');
     PT.i18n.apply(document);
-    fillLangs(); fillActive(); render(); refreshCache();
+    fillLangs(); fillActive(); render(); refreshCache(); refreshUsage();
   }
 
+  const fmt = (n) => PT.i18n.fmtNum(Math.round(n || 0));
+  const mb = (b) => (b == null ? '—' : (b / 1048576).toFixed(b < 1048576 ? 2 : 1) + ' MB');
+  function costOf(p, u) {
+    if (!p || !(p.priceIn > 0 || p.priceOut > 0)) return null;
+    const miss = Math.max(0, u.inTok - u.cachedTok);
+    return (miss * (+p.priceIn || 0) + u.cachedTok * (+p.priceCached || 0) + u.outTok * (+p.priceOut || 0)) / 1e6;
+  }
+  const money = (c) => (c == null ? '—' : c < 0.01 ? '$' + c.toFixed(4) : '$' + c.toFixed(2));
+
   async function refreshCache() {
-    const r = await chrome.runtime.sendMessage({ type: 'cache:count' });
-    $('cacheInfo').textContent = r && r.n != null ? t('opt.cacheCount', { n: PT.i18n.fmtNum(r.n) }) : t('opt.cacheNA');
+    const r = await chrome.runtime.sendMessage({ type: 'cache:info' });
+    if (!r || r.error) { $('cacheStats').textContent = t('opt.cacheNA'); return; }
+    const hitRate = r.hits + r.misses ? Math.round(r.hits / (r.hits + r.misses) * 100) + '%' : '—';
+    const stat = (v, label, cls) => `<div class="stat ${cls || ''}"><b>${v}</b><span>${label}</span></div>`;
+    $('cacheStats').innerHTML =
+      stat(fmt(r.count), t('opt.st.entries')) +
+      stat(mb(r.bytes), t('opt.st.size', { max: r.limits.maxMB })) +
+      stat(hitRate, t('opt.st.hitRate'), 'good') +
+      stat(fmt(r.savedChars), t('opt.st.saved'), 'good');
+    const lp = r.lastPrune;
+    $('cacheInfo').textContent = lp ? t('opt.lastPrune', { e: fmt(lp.expired), v: fmt(lp.evicted), s: fmt(lp.spared) }) : '';
+  }
+
+  async function refreshUsage() {
+    const u = await chrome.runtime.sendMessage({ type: 'usage:get' });
+    const rows = Object.entries(u || {}).filter(([, x]) => x && x.req);
+    if (!rows.length) { $('usageTable').innerHTML = `<p class="muted">${t('opt.usage.none')}</p>`; return; }
+    const head = ['opt.u.engine', 'opt.u.req', 'opt.u.in', 'opt.u.hit', 'opt.u.out', 'opt.u.cost'].map((k) => `<th>${t(k)}</th>`).join('');
+    const body = rows.map(([id, x]) => {
+      const p = providers.find((q) => q.id === id);
+      const hit = x.inTok ? Math.round(x.cachedTok / x.inTok * 100) + '%' : '—';
+      return `<tr><td>${esc(p ? PT.provName(p) : id)}</td><td>${fmt(x.req)}</td><td>${fmt(x.inTok)}</td><td>${hit}</td><td>${fmt(x.outTok)}</td><td>${money(costOf(p, x))}</td></tr>`;
+    }).join('');
+    $('usageTable').innerHTML = `<table class="usage"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
   }
 
   // 界面语言立即生效并保存（其他设置仍需点「保存」）
   $('uiLang').onchange = async () => { settings = await PT.saveSettings({ uiLang: $('uiLang').value }); renderAll(); };
   $('addOpenai').onclick = () => addProvider('openai');
   $('addDeepl').onclick = () => addProvider('deepl');
-  $('clearCache').onclick = async () => { await chrome.runtime.sendMessage({ type: 'cache:clear' }); refreshCache(); };
+  $('clearCache').onclick = async () => {
+    if (!confirm(t('opt.clearCache.confirm'))) return;
+    await chrome.runtime.sendMessage({ type: 'cache:clear' }); refreshCache();
+  };
+  // 只清当前引擎（换模型 / 改了提示词后想全部重翻时用）
+  $('clearEngineCache').onclick = async () => {
+    const p = providers.find((q) => q.id === $('activeProviderId').value);
+    if (!p) return;
+    const r = await chrome.runtime.sendMessage({ type: 'cache:clear', scope: { nsPrefix: p.type + '|' + p.id + '|' } });
+    $('cacheInfo').textContent = t('opt.cleared', { n: fmt(r && r.removed), name: PT.provName(p) });
+    setTimeout(refreshCache, 1200);
+  };
+  $('pruneCache').onclick = async () => { await chrome.runtime.sendMessage({ type: 'cache:prune' }); refreshCache(); };
+  $('resetUsage').onclick = async () => { await chrome.runtime.sendMessage({ type: 'usage:reset' }); refreshUsage(); };
   $('save').onclick = async () => {
     for (const p of providers) {
       if (p.type === 'openai' && p.extraBody && String(p.extraBody).trim()) {
@@ -142,6 +191,8 @@
       activeProviderId: $('activeProviderId').value,
       highlight: $('highlight').value,
       prefetchScreens: Math.max(0, +$('prefetchScreens').value || 0),
+      cacheMaxMB: Math.max(1, +$('cacheMaxMB').value || PT.DEFAULTS.cacheMaxMB),
+      cacheTTLDays: Math.max(1, +$('cacheTTLDays').value || PT.DEFAULTS.cacheTTLDays),
       syncScroll: $('syncScroll').checked,
       stripFrameHeaders: $('stripFrameHeaders').checked,
       devMode: $('devMode').checked,
@@ -153,7 +204,7 @@
   };
 
   $('uiLang').value = settings.uiLang || 'auto';
-  for (const k of ['highlight', 'prefetchScreens']) $(k).value = settings[k];
+  for (const k of ['highlight', 'prefetchScreens', 'cacheMaxMB', 'cacheTTLDays']) $(k).value = settings[k];
   for (const k of ['syncScroll', 'stripFrameHeaders', 'devMode']) $(k).checked = !!settings[k];
   $('devMode').onchange = () => { fillActive(); render(); };
   renderAll();

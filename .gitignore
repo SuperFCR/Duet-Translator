@@ -4,3 +4,4 @@ test/e2e/out/
 *.crx
 *.pem
 .DS_Store
+test/bench/out/

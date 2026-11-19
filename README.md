@@ -14,7 +14,8 @@ Duet-Translator is an Edge / Chrome extension that shows a web page and its tran
 
 - **The real page, twice.** Both panes load the actual page, so layout, images, links and login state stay intact. Only the right pane is translated, in place.
 - **Paragraph-aligned scrolling.** Scroll either side and the other follows; the paragraph you are reading lines up on both sides, and both reach the top and bottom together, even when the translation is much longer or shorter than the original.
-- **Pay only for what you read.** Only the visible area (plus half a screen) is translated. Nothing is requested while you scroll, requests you scrolled away from are cancelled, and translations are cached locally.
+- **Pay only for what you read.** Only the visible area (plus half a screen) is translated. Nothing is requested while you scroll, requests you scrolled away from are cancelled, and duplicate paragraphs are sent once.
+- **Cache-first.** Everything you have read is kept locally and shown instantly, even while you scroll; the prompt is laid out so providers with prefix caching (DeepSeek, OpenAI…) bill most of the instructions at the cached rate. A green meter shows this page's tokens, cache hits and estimated cost.
 - **Streaming.** Each paragraph appears as soon as it is translated, and paragraphs still in progress gently pulse, so you always know it is working.
 - **Formatting preserved.** Links, bold/italic, inline code, citation markers and images survive translation; code blocks are left untouched.
 - **Bring your own engine.** Any OpenAI-compatible endpoint (vLLM, SGLang, Ollama, LM Studio, llama.cpp, DeepSeek, OpenRouter, Qwen/DashScope…) or DeepL.
@@ -85,11 +86,19 @@ If your model runs on a remote GPU box, just make its address reachable from the
 - Only the visible area plus 0.5 screen below is translated (*More settings → screens to pre-translate*; `0` = visible area only).
 - No requests while scrolling. Translation starts about 0.3 s after you stop, so content you fly past is never sent.
 - In-flight requests for paragraphs you have scrolled far away from are cancelled, so the server stops generating.
-- Hidden menus, text already in the target language, and cached paragraphs are never sent.
+- Hidden menus, text already in the target language, and cached paragraphs are never sent. A paragraph that appears several times (forum "reply / share" links, repeated menus) is sent once, and a paragraph already being translated by another request is waited for, not sent again.
+- Cached translations are looked up before anything else, for several screens around you and even while you scroll, so pages you have read come back instantly and for free.
+- The system prompt is fixed and comes first, so providers with automatic prefix caching (DeepSeek: about 1/50 of the input price on V4 Flash) bill it at the cached rate.
+- Every request carries a generous `max_tokens` cap, so a model stuck in a loop cannot run up the bill. Servers that reject `max_tokens` / `stream_options` are detected and retried without them (remembered for the browser session).
+- For small self-hosted models, set the engine's *context window*: batches that would not fit (prompt + text + expected translation) are split before sending, and `max_tokens` stays within the remaining room.
 - **Whole page** asks for confirmation first and tells you how many characters it will send.
-- The top bar shows how many characters this page has sent so far.
+- The top bar shows characters sent and a green meter with this page's tokens (input / cached / output on hover), local cache hits and estimated cost (prices are editable per engine). Settings → *Usage* keeps per-engine totals.
+
+**Cache housekeeping.** The local cache is least-recently-read first, with a second chance for frequently reused entries (menus, navigation), a size limit (default 64 MB) and an expiry for entries unread for 90 days; changing the model or custom prompt switches to a fresh namespace automatically. ↻ in the top bar re-translates the current page (drops only its cached entries); Settings → *Cache* shows hit rate and characters saved, and can clear the current engine only or everything.
 
 On the Wikipedia article above, four stops one screen apart sent about 12,000 characters in total, against about 46,600 for the whole visible article. With DeepSeek (reasoning off) the current screen was fully translated 2–5.5 s after each stop.
+
+A reproducible cost/latency benchmark (simulated DeepSeek-style billing with prefix caching) lives in `test/bench/`. Against the previous version: first paragraph on screen 2.5 s → 1.0 s, revisiting a page 1.6 s → 0.15 s (all from the local cache, zero requests), screen filled after a fast skim 7.8 s → 4.2 s, 14% fewer segments sent on a forum thread, total cost −2.7%. Details and the iteration log are in [docs/DESIGN.md §7.1](docs/DESIGN.md).
 
 ## Privacy
 
@@ -114,6 +123,8 @@ npx playwright install chromium   # add --with-deps on a fresh Linux box
 npm run test:unit                 # scroll-sync math (node:test)
 npm run test:options              # settings page and popup
 npm run test:e2e                  # loads the extension in Chromium and checks alignment, translation, cost control
+npm run test:cache                # cache eviction, dedup, usage accounting, parameter fallback
+node bench/bench.mjs              # cost / latency benchmark against a simulated LLM (see test/bench/README.md)
 npm run demo                      # local demo page at http://127.0.0.1:8787/article.html
 node e2e/compat.mjs               # real-site compatibility sweep with the offline Mock engine (see docs/COMPAT.md)
 ```

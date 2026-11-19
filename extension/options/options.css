@@ -23,3 +23,13 @@ pre.out.err { color: #b91c1c; }
 #saved { margin-left: 10px; color: #059669; }
 h1.brand { display: flex; align-items: center; gap: 10px; }
 h1 a.welcome { margin-left: auto; font-size: 13px; font-weight: 400; color: #2563eb; text-decoration: none; }
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.stat { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 12px; }
+.stat b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; color: #111827; }
+.stat span { font-size: 12px; color: #6b7280; }
+.stat.good b { color: #047857; }
+.muted { color: #6b7280; font-size: 13px; align-self: center; }
+table.usage { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+table.usage th, table.usage td { text-align: right; padding: 6px 8px; border-bottom: 1px solid #f1f5f9; }
+table.usage th:first-child, table.usage td:first-child { text-align: left; }
+table.usage th { color: #6b7280; font-weight: 500; }

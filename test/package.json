@@ -7,6 +7,7 @@
     "test:unit": "node --test unit/*.test.cjs",
     "test:e2e": "node e2e/run.mjs",
     "test:options": "node e2e/options.mjs",
+    "test:cache": "node e2e/cache.mjs",
     "demo": "node demo/gen.mjs && node e2e/server.mjs",
     "icons": "node make-icons.mjs",
     "compat": "node e2e/compat.mjs"

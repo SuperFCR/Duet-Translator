@@ -54,6 +54,18 @@ async function toggle(tabId, opts) {
 }
 globalThis.PT_toggleTab = toggle;   // 调试/测试用
 
+// 缓存上限跟随设置；SW 醒来时若距上次整理超过 6 小时，顺手整理一次（TTL 过期 + 超预算淘汰）
+async function configureCache() {
+  const s = await PT.loadSettings();
+  PT.cache.configure({ maxMB: s.cacheMaxMB, ttlDays: s.cacheTTLDays, maxEntries: s.cacheMaxEntries });
+}
+configureCache().then(async () => {
+  const inf = await PT.cache.info('').catch(() => null);
+  const last = inf && inf.lastPrune ? inf.lastPruneAt : 0;
+  if (!last || Date.now() - last > 6 * 3600e3) setTimeout(() => PT.cache.prune().catch(() => {}), 8000);
+}).catch(() => {});
+chrome.storage.onChanged.addListener((ch, area) => { if (area === 'local' && ch.settings) configureCache().catch(() => {}); });
+
 /* --------------------------- 分屏会话 / DNR --------------------------- */
 async function splitOn(tabId) {
   await chrome.storage.session.set({ ['split:' + tabId]: Date.now() });
@@ -154,7 +166,7 @@ async function translateInner(msg, signal, partial) {
   const ctx = { from: settings.sourceLang || 'auto', to: msg.to || settings.targetLang, page: msg.page || {}, signal };
   const segs = msg.segments || [];
   const results = new Array(segs.length);
-  if (PT.needsKey(cfg) && !PT.hasKey(cfg)) throw noKeyError();   // 不发请求，直接提示
+  if (!msg.cacheOnly && PT.needsKey(cfg) && !PT.hasKey(cfg)) throw noKeyError();   // 不发请求，直接提示
   try {
     return await translateCore(msg, cfg, impl, ctx, segs, results, signal, partial);
   } catch (e) {
@@ -162,29 +174,142 @@ async function translateInner(msg, signal, partial) {
   }
 }
 
+/** 缓存命名空间：引擎|模型|语言对；用了自定义提示词时追加其哈希（改提示词 = 自动换一套缓存，旧的靠 LRU/TTL 自然淘汰） */
+function cacheNs(cfg, ctx) {
+  let ns = [cfg.type, cfg.id, cfg.model || '', ctx.from, ctx.to].join('|');
+  const sp = String(cfg.systemPrompt || '').trim();
+  if (sp) {
+    let h = 0;
+    for (let i = 0; i < sp.length; i++) h = (h * 31 + sp.charCodeAt(i)) | 0;
+    ns += '|sp' + (h >>> 0).toString(36);
+  }
+  return ns;
+}
+const hostOf = (u) => { try { return new URL(u).hostname; } catch (_) { return ''; } };
+const pageOf = (u) => String(u || '').split('#')[0];
+
+/** 译文里的占位标签必须和原文一一对应，否则（模型弄乱了标签）不写缓存，下次重新翻译 */
+function tagsOk(src, out) {
+  if (typeof out !== 'string' || !out.trim()) return false;
+  const tags = (x) => (x.match(/<\/?g\d+>|<x\d+\/>/g) || []).sort().join(',');
+  return tags(src) === tags(out);
+}
+
+// 在途去重：同一段原文（同一命名空间）正在被别的请求翻译时，直接等它的结果，不重复花钱
+const pending = new Map();   // cacheKey -> { promise, resolve, reject }
+function deferred() {
+  let resolve, reject;
+  const promise = new Promise((a, b) => { resolve = a; reject = b; });
+  promise.catch(() => {});
+  return { promise, resolve, reject };
+}
+
+// 累计用量（按引擎）：设置页展示 token 与估算费用
+const usageAcc = new Map();
+let usageTimer = 0;
+function addUsage(cfgId, u) {
+  if (!u) return;
+  const a = usageAcc.get(cfgId) || { req: 0, inTok: 0, cachedTok: 0, outTok: 0, est: 0 };
+  a.req++; a.inTok += u.inTok || 0; a.cachedTok += u.cachedTok || 0; a.outTok += u.outTok || 0; if (u.est) a.est++;
+  usageAcc.set(cfgId, a);
+  if (!usageTimer) usageTimer = setTimeout(flushUsage, 3000);
+}
+async function flushUsage() {
+  usageTimer = 0;
+  if (!usageAcc.size) return;
+  const add = Array.from(usageAcc); usageAcc.clear();
+  const { usage = {} } = await chrome.storage.local.get('usage');
+  for (const [id, a] of add) {
+    const u = usage[id] || { req: 0, inTok: 0, cachedTok: 0, outTok: 0, est: 0, since: Date.now() };
+    for (const k of ['req', 'inTok', 'cachedTok', 'outTok', 'est']) u[k] = (u[k] || 0) + a[k];
+    usage[id] = u;
+  }
+  await chrome.storage.local.set({ usage });
+}
+
 async function translateCore(msg, cfg, impl, ctx, segs, results, signal, partial) {
   const useCache = cfg.type !== 'mock' && !msg.noCache;
-  let ks = null;
-  if (useCache) {
-    ks = await PT.cache.keys([cfg.type, cfg.id, cfg.model || '', ctx.from, ctx.to].join('|'), segs);
-    const hit = await PT.cache.getMany(ks);
-    hit.forEach((v, i) => { if (typeof v === 'string') { results[i] = v; if (partial) partial(i, v); } });
+  const ns = cacheNs(cfg, ctx);
+  const host = hostOf(ctx.page && ctx.page.url), page = pageOf(ctx.page && ctx.page.url);
+  const usage = { req: 0, inTok: 0, cachedTok: 0, outTok: 0, est: false };
+  ctx = Object.assign({}, ctx, {
+    onUsage: (u) => {
+      if (!u) return;
+      usage.req++; usage.inTok += u.inTok; usage.cachedTok += u.cachedTok; usage.outTok += u.outTok; if (u.est) usage.est = true;
+      addUsage(cfg.id, u);
+    },
+  });
+  const ks = useCache ? await PT.cache.keys(ns, segs) : segs.map((t) => ns + '\u0000' + t);
+  let cacheHits = 0;
+  if (useCache && !msg.refresh) {
+    const hit = await PT.cache.getMany(ks, segs);
+    hit.forEach((v, i) => { if (typeof v === 'string') { results[i] = v; cacheHits++; if (partial) partial(i, v); } });
   }
-  const miss = segs.map((_, i) => i).filter((i) => results[i] === undefined);
-  let sentChars = 0;   // 实际发给引擎的字符数（缓存命中不计）
-  if (miss.length) {
+  if (msg.cacheOnly) return { results, sentChars: 0, cacheHits };
+
+  // 同一请求内重复的原文只发一次；别的请求正在翻的原文直接等结果
+  const groups = new Map();   // key -> [下标…]
+  segs.forEach((_, i) => {
+    if (results[i] !== undefined) return;
+    const g = groups.get(ks[i]);
+    if (g) g.push(i); else groups.set(ks[i], [i]);
+  });
+  const fill = (idxs, v, final) => {
+    for (const i of idxs) { if (final) results[i] = v; if (partial) partial(i, v); }
+  };
+  const own = [], waits = [];
+  const claim = (k, idxs) => { const d = deferred(); pending.set(k, d); return [k, idxs, d]; };
+  const release = (g, v, ok) => {   // 只撤掉自己登记的那份（refresh 可能覆盖过别人的登记）
+    const [k, , d] = g;
+    if (ok) d.resolve(v); else d.reject(new Error('owner failed'));
+    if (pending.get(k) === d) pending.delete(k);
+  };
+  for (const [k, idxs] of groups) {
+    const p = pending.get(k);
+    if (!msg.refresh && p) waits.push([k, idxs, p.promise]);
+    else own.push(claim(k, idxs));
+  }
+
+  let sentChars = 0, dedup = 0;
+  for (const [, idxs] of groups) dedup += idxs.length - 1;
+  const sendGroups = async (list) => {
+    if (!list.length) return;
     const sem = getSem(cfg.id, Math.max(1, cfg.concurrency || 3));
-    await Promise.all(chunk(miss, segs, cfg).map((ch) => withSem(sem, async () => {
+    const lead = list.map((g) => g[1][0]);
+    const byLead = new Map(list.map((g) => [g[1][0], g]));
+    await Promise.all(chunk(lead, segs, cfg).map((ch) => withSem(sem, async () => {
       if (signal && signal.aborted) throw new Error('cancelled');
       sentChars += ch.reduce((n, i) => n + segs[i].length, 0);
-      const cctx = partial ? Object.assign({}, ctx, { onItem: (j, text) => { if (ch[j] != null) partial(ch[j], text); } }) : ctx;
+      const cctx = partial ? Object.assign({}, ctx, { onItem: (j, text) => { if (ch[j] != null) fill(byLead.get(ch[j])[1], text, false); } }) : ctx;
       const out = await impl.translate(ch.map((i) => segs[i]), cfg, cctx);
       if (!Array.isArray(out) || out.length !== ch.length) throw new Error(PT.t('err.count'));
-      ch.forEach((i, j) => { results[i] = out[j]; });
-      if (useCache) await PT.cache.putMany(ch.map((i) => ks[i]), out);
+      const okK = [], okV = [];
+      ch.forEach((i, j) => {
+        const g = byLead.get(i);
+        fill(g[1], out[j], true);
+        release(g, out[j], true);
+        g.done = true;
+        if (useCache && tagsOk(segs[i], out[j])) { okK.push(g[0]); okV.push(out[j]); }
+      });
+      if (okK.length) await PT.cache.putMany(okK, okV, { host, page, ns });
     })));
+  };
+
+  // 失败 / 取消：没完成的在途登记要撤掉，等待它们的请求会自己重新发
+  const releaseRest = (list) => { for (const g of list) if (!g.done) release(g, null, false); };
+  try { await sendGroups(own); } finally { releaseRest(own); }
+  if (waits.length) {
+    const retry = [];
+    await Promise.all(waits.map(async ([k, idxs, p]) => {
+      try { fill(idxs, await p, true); } catch (_) { retry.push([k, idxs]); }
+    }));
+    if (retry.length) {
+      if (signal && signal.aborted) throw new Error('cancelled');
+      const mine = retry.map(([k, idxs]) => claim(k, idxs));
+      try { await sendGroups(mine); } finally { releaseRest(mine); }
+    }
   }
-  return { results, sentChars };
+  return { results, sentChars, cacheHits, dedup, usage };
 }
 
 /* ----------------------------- 消息路由 ----------------------------- */
@@ -228,9 +353,15 @@ const handlers = {
     return { ok: !!ac };
   },
   openOptions: () => chrome.runtime.openOptionsPage().then(() => ({ ok: true })),
-  'cache:clear': () => PT.cache.clear().then(() => ({ ok: true })),
+  'cache:clear': (m) => PT.cache.clear(m.scope && m.scope.page ? { page: pageOf(m.scope.page) } : m.scope).then((r) => Object.assign({ ok: true }, r)),
   'cache:count': () => PT.cache.count().then((n) => ({ n })),
+  'cache:info': (m) => PT.cache.info(m.host || ''),
+  'cache:prune': () => PT.cache.prune({ factor: 0.9 }),
+  'usage:get': async () => { await flushUsage(); return (await chrome.storage.local.get('usage')).usage || {}; },
+  'usage:reset': async () => { usageAcc.clear(); await chrome.storage.local.remove('usage'); return { ok: true }; },
 };
+
+globalThis.PT_handlers = handlers;   // 调试/测试用
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const h = msg && handlers[msg.type];
